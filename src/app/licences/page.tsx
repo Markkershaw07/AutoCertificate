@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import PageHeader from '@/components/layout/PageHeader'
 
@@ -52,11 +52,7 @@ export default function LicencesPage() {
            licenceNumber.includes(search)
   })
 
-  useEffect(() => {
-    fetchLicences()
-  }, [page])
-
-  const fetchLicences = async () => {
+  const fetchLicences = useCallback(async () => {
     setIsLoading(true)
     setError(null)
 
@@ -83,7 +79,11 @@ export default function LicencesPage() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [page, limit])
+
+  useEffect(() => {
+    fetchLicences()
+  }, [fetchLicences])
 
   const handleDownload = async (licence: LicenceFile) => {
     setDownloadingPath(licence.path)
@@ -247,7 +247,7 @@ export default function LicencesPage() {
             </svg>
             <h3 className="text-lg font-semibold text-navy mb-2">No Results Found</h3>
             <p className="text-neutral-black opacity-70 mb-4">
-              No licences match your search for "{searchTerm}"
+              No licences match your search for &ldquo;{searchTerm}&rdquo;
             </p>
             <button
               onClick={() => setSearchTerm('')}
