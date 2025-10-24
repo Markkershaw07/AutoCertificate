@@ -17,35 +17,36 @@ function formatDate(dateString: string): string {
   })
 }
 
-// Format address to wrap at commas after ~30 characters (max 2 lines)
+// Format address to wrap at commas (top line shorter, bottom line longer)
 function formatAddress(address: string): string {
   // Split address by commas
   const parts = address.split(',').map(part => part.trim())
 
-  if (parts.length === 0) return address
-
-  let firstLine = parts[0]
-  let splitIndex = 1
-
-  // Build first line up to ~30 characters
-  for (let i = 1; i < parts.length; i++) {
-    const testLine = firstLine + ', ' + parts[i]
-    if (testLine.length > 30) {
-      // This would exceed 30 chars, so stop here
-      splitIndex = i
-      break
-    }
-    firstLine = testLine
-    splitIndex = i + 1
-  }
-
-  // If all parts fit in first line, return as is
-  if (splitIndex >= parts.length) {
+  // If only one part or address is short, keep on one line
+  if (parts.length <= 1 || address.length < 50) {
     return address
   }
 
-  // Put remaining parts on second line
-  const secondLine = parts.slice(splitIndex).join(', ')
+  // Try to find split point where first line is 35-45% of total length
+  const targetFirstLineLength = address.length * 0.4
+  let bestSplitIndex = 1
+  let bestDifference = Math.abs(parts[0].length - targetFirstLineLength)
+
+  // Try each possible split point
+  for (let i = 1; i < parts.length; i++) {
+    const firstLine = parts.slice(0, i).join(', ')
+    const difference = Math.abs(firstLine.length - targetFirstLineLength)
+
+    // If this split is closer to target, use it
+    if (difference < bestDifference) {
+      bestDifference = difference
+      bestSplitIndex = i
+    }
+  }
+
+  // Build the two lines
+  const firstLine = parts.slice(0, bestSplitIndex).join(', ')
+  const secondLine = parts.slice(bestSplitIndex).join(', ')
 
   return firstLine + ',\n' + secondLine
 }
