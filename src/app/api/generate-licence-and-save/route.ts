@@ -109,8 +109,49 @@ export async function POST(request: NextRequest) {
       membership_period
     })
 
+    // Get the zip object to modify font sizes if needed
+    const modifiedZip = doc.getZip()
+
+    // Adjust font size for long company names
+    if (company_name.length > 50) {
+      try {
+        // Get the slide XML (usually slide1.xml)
+        const slideXml = modifiedZip.files['ppt/slides/slide1.xml']?.asText()
+
+        if (slideXml) {
+          // Determine font size based on length (in half-points)
+          let fontSize = 2400 // Default 24pt
+          if (company_name.length > 70) {
+            fontSize = 1800 // 18pt for very long names (70+ chars)
+          } else if (company_name.length > 50) {
+            fontSize = 2000 // 20pt for moderately long names (50-70 chars)
+          }
+
+          // Escape company name for regex
+          const escapedName = company_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+          // Find text runs containing the company name and adjust font size
+          // Pattern matches: <a:r>...<a:rPr>...<a:sz val="XXXX"/>...</a:rPr>...<a:t>CompanyName</a:t>...</a:r>
+          const pattern = new RegExp(
+            `(<a:r[^>]*>\\s*<a:rPr[^>]*>(?:[\\s\\S]*?)<a:sz val=")\\d+("[^>]*>(?:[\\s\\S]*?)<\\/a:rPr>\\s*<a:t[^>]*>)${escapedName}(<\\/a:t>)`,
+            'gi'
+          )
+
+          const modifiedSlideXml = slideXml.replace(pattern, `$1${fontSize}$2${company_name}$3`)
+
+          // Update the slide in the zip
+          modifiedZip.file('ppt/slides/slide1.xml', modifiedSlideXml)
+
+          console.log(`[Font Adjustment] Set company name font to ${fontSize/2}pt for "${company_name}" (${company_name.length} chars)`)
+        }
+      } catch (err) {
+        console.error('Error adjusting font size:', err)
+        // Continue anyway - template will use default size
+      }
+    }
+
     // Generate filled PPTX buffer
-    const filledPptxBuffer = doc.getZip().generate({
+    const filledPptxBuffer = modifiedZip.generate({
       type: 'nodebuffer',
       compression: 'DEFLATE'
     })
