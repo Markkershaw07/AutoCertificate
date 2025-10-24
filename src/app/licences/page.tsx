@@ -247,7 +247,7 @@ export default function LicencesPage() {
             </svg>
             <h3 className="text-lg font-semibold text-navy mb-2">No Results Found</h3>
             <p className="text-neutral-black opacity-70 mb-4">
-              No licences match your search for &ldquo;{searchTerm}&rdquo;
+              No licences match your search for: {searchTerm}
             </p>
             <button
               onClick={() => setSearchTerm('')}
