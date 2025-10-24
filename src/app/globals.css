@@ -1,0 +1,63 @@
+/* Import FAIB Brand Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #E6E6FA;
+  --foreground: #252428;
+
+  /* FAIB Brand Colors */
+  --primary: #235453;
+  --primary-dark: #1a3f3e;
+  --primary-light: #2d6a68;
+  --secondary: #90BEAB;
+  --secondary-light: #a8cfbe;
+  --navy: #363765;
+  --neutral-grey: #E6E6FA;
+  --neutral-black: #252428;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+@layer components {
+  /* FAIB Button Styles */
+  .btn-primary {
+    @apply bg-primary hover:bg-[#2d6a68] hover:shadow-md text-white font-semibold py-2 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply bg-white border-2 border-secondary hover:bg-secondary hover:text-white hover:shadow-md text-primary font-semibold py-2 px-6 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-secondary focus:ring-offset-2;
+  }
+
+  /* FAIB Input Styles */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200;
+  }
+
+  /* FAIB Card */
+  .card {
+    @apply bg-white rounded-lg shadow-md p-6;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

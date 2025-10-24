@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --app --eslint --no-git --src-dir --import-alias \"@/*\")",
+      "Bash(npx create-next-app@latest:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(ping:*)",
+      "Bash(npm install:*)",
+      "Read(//c/Users/Mark Kershaw/Downloads/**)",
+      "Bash(copy \"c:\\Users\\Mark Kershaw\\Fofato\\FAIB - All Documents - General\\(006) (EVIE FOLDER)\\FAIB LOGOS\\FAIB LOGO.png\" \"C:\\Users\\Mark Kershaw\\AutoCertificate\\public\\faib-logo.png\")",
+      "WebFetch(domain:docs.sheepcrm.com)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
