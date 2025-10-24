@@ -17,38 +17,37 @@ function formatDate(dateString: string): string {
   })
 }
 
-// Format address to wrap at commas after ~30 characters
+// Format address to wrap at commas after ~30 characters (max 2 lines)
 function formatAddress(address: string): string {
   // Split address by commas
   const parts = address.split(',').map(part => part.trim())
 
-  const lines: string[] = []
-  let currentLine = ''
+  if (parts.length === 0) return address
 
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i]
-    const isLast = i === parts.length - 1
+  let firstLine = parts[0]
+  let splitIndex = 1
 
-    // If adding this part would exceed 30 chars and we already have content, start new line
-    if (currentLine && (currentLine + ', ' + part).length > 30) {
-      lines.push(currentLine + ',')
-      currentLine = part
-    } else {
-      // Add to current line
-      if (currentLine) {
-        currentLine += ', ' + part
-      } else {
-        currentLine = part
-      }
+  // Build first line up to ~30 characters
+  for (let i = 1; i < parts.length; i++) {
+    const testLine = firstLine + ', ' + parts[i]
+    if (testLine.length > 30) {
+      // This would exceed 30 chars, so stop here
+      splitIndex = i
+      break
     }
+    firstLine = testLine
+    splitIndex = i + 1
   }
 
-  // Add the last line (without trailing comma)
-  if (currentLine) {
-    lines.push(currentLine)
+  // If all parts fit in first line, return as is
+  if (splitIndex >= parts.length) {
+    return address
   }
 
-  return lines.join('\n')
+  // Put remaining parts on second line
+  const secondLine = parts.slice(splitIndex).join(', ')
+
+  return firstLine + ',\n' + secondLine
 }
 
 export async function POST(request: NextRequest) {
