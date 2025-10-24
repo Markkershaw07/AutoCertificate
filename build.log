@@ -1,0 +1,29 @@
+
+> autocertificate@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.6
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 11.6s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/app/api/generate-licence-and-save/route.ts:141:37
+Type error: No overload matches this call.
+  Overload 1 of 2, '(input: string | Request | URL, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'string | Request | URL'.
+      Type 'undefined' is not assignable to type 'string | Request | URL'.
+  Overload 2 of 2, '(input: URL | RequestInfo, init?: RequestInit | undefined): Promise<Response>', gave the following error.
+    Argument of type 'string | undefined' is not assignable to parameter of type 'URL | RequestInfo'.
+      Type 'undefined' is not assignable to type 'URL | RequestInfo'.
+
+[0m [90m 139 |[39m     [90m// Download PDF[39m
+ [90m 140 |[39m     [36mconst[39m pdfFile [33m=[39m exportTask[33m.[39mresult[33m.[39mfiles[[35m0[39m]
+[31m[1m>[22m[39m[90m 141 |[39m     [36mconst[39m pdfResponse [33m=[39m [36mawait[39m fetch(pdfFile[33m.[39murl)
+ [90m     |[39m                                     [31m[1m^[22m[39m
+ [90m 142 |[39m
+ [90m 143 |[39m     [36mif[39m ([33m![39mpdfResponse[33m.[39mok) {
+ [90m 144 |[39m       [36mreturn[39m [33mNextResponse[39m[33m.[39mjson([0m
+Next.js build worker exited with code: 1 and signal: null

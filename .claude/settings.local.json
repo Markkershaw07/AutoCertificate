@@ -9,7 +9,16 @@
       "Bash(npm install:*)",
       "Read(//c/Users/Mark Kershaw/Downloads/**)",
       "Bash(copy \"c:\\Users\\Mark Kershaw\\Fofato\\FAIB - All Documents - General\\(006) (EVIE FOLDER)\\FAIB LOGOS\\FAIB LOGO.png\" \"C:\\Users\\Mark Kershaw\\AutoCertificate\\public\\faib-logo.png\")",
-      "WebFetch(domain:docs.sheepcrm.com)"
+      "WebFetch(domain:docs.sheepcrm.com)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix build errors for Vercel deployment\n\n- Fix unescaped quotes in search results message (line 250)\n- Fix useEffect dependency warning by using useCallback\n- Both fixes ensure successful production build\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(git commit:*)",
+      "Bash(npm run build:*)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

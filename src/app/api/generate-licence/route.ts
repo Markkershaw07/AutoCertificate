@@ -129,7 +129,8 @@ export async function POST(request: NextRequest) {
 
     // Download PDF
     const pdfFile = exportTask.result.files[0]
-    const pdfResponse = await fetch(pdfFile.url)
+    const pdfUrl = pdfFile.url!
+    const pdfResponse = await fetch(pdfUrl)
 
     if (!pdfResponse.ok) {
       return NextResponse.json(

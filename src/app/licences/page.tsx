@@ -25,6 +25,7 @@ interface ApiResponse {
   limit: number
   total: number
   nextPageAvailable: boolean
+  error?: string
 }
 
 export default function LicencesPage() {
