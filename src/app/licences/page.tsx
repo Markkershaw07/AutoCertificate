@@ -265,19 +265,19 @@ export default function LicencesPage() {
                 <table className="w-full">
                   <thead className="bg-neutral-grey border-b-2 border-gray-300">
                     <tr>
-                      <th className="text-left py-5 px-8 font-bold text-primary text-sm uppercase tracking-wide">
+                      <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Training Provider
                       </th>
-                      <th className="text-left py-5 px-8 font-bold text-primary text-sm uppercase tracking-wide">
+                      <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Licence #
                       </th>
-                      <th className="text-left py-5 px-8 font-bold text-primary text-sm uppercase tracking-wide">
+                      <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Created
                       </th>
-                      <th className="text-left py-5 px-8 font-bold text-primary text-sm uppercase tracking-wide">
+                      <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Size
                       </th>
-                      <th className="text-right py-5 px-8 font-bold text-primary text-sm uppercase tracking-wide">
+                      <th className="text-right py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Actions
                       </th>
                     </tr>
@@ -285,30 +285,30 @@ export default function LicencesPage() {
                   <tbody className="divide-y divide-gray-100">
                     {filteredLicences.map((licence) => (
                       <tr key={licence.path} className="hover:bg-secondary/15 transition-colors duration-150">
-                        <td className="py-5 px-8">
-                          <div className="text-neutral-black font-semibold text-base">
+                        <td className="py-3 px-3 lg:py-5 lg:px-8">
+                          <div className="text-neutral-black font-semibold text-sm lg:text-base whitespace-nowrap">
                             {licence.metadata?.company_name || 'N/A'}
                           </div>
                           {licence.metadata && (
-                            <div className="text-xs text-gray-500 mt-1">{licence.name}</div>
+                            <div className="text-xs text-gray-500 mt-1 max-w-[150px] lg:max-w-none truncate">{licence.name}</div>
                           )}
                         </td>
-                        <td className="py-5 px-8">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-secondary/25 text-primary">
+                        <td className="py-3 px-3 lg:py-5 lg:px-8">
+                          <span className="inline-flex items-center px-2 py-1 lg:px-3 rounded-full text-xs lg:text-sm font-semibold bg-secondary/25 text-primary whitespace-nowrap">
                             {licence.metadata?.licence_number || '-'}
                           </span>
                         </td>
-                        <td className="py-5 px-8 text-neutral-black text-sm">
+                        <td className="py-3 px-3 lg:py-5 lg:px-8 text-neutral-black text-xs lg:text-sm whitespace-nowrap">
                           {formatDate(licence.createdAt)}
                         </td>
-                        <td className="py-5 px-8 text-neutral-black text-sm">
+                        <td className="py-3 px-3 lg:py-5 lg:px-8 text-neutral-black text-xs lg:text-sm whitespace-nowrap">
                           {formatSize(licence.size)}
                         </td>
-                        <td className="py-5 px-8 text-right">
+                        <td className="py-3 px-3 lg:py-5 lg:px-8 text-right">
                           <button
                             onClick={() => handleDownload(licence)}
                             disabled={downloadingPath === licence.path}
-                            className="bg-primary hover:bg-[#2d6a68] hover:shadow-md text-white py-2 px-5 rounded-lg font-semibold text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center"
+                            className="bg-primary hover:bg-[#2d6a68] hover:shadow-md text-white py-2 px-3 lg:px-5 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap min-h-[44px]"
                           >
                             {downloadingPath === licence.path ? (
                               <>

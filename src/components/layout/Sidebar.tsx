@@ -11,7 +11,12 @@ interface NavItem {
   disabled?: boolean
 }
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export default function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
 
   const navItems: NavItem[] = [
@@ -47,10 +52,22 @@ export default function Sidebar() {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-64 bg-primary text-white flex flex-col shadow-lg">
+    <>
+      {/* Mobile backdrop overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`fixed left-0 top-0 h-full w-64 bg-primary text-white flex flex-col shadow-lg z-50 transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0`}>
       {/* Logo Section */}
       <div className="p-5 border-b border-primary-light">
-        <Link href="/" className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
+        <Link href="/" onClick={() => onClose()} className="block bg-white rounded-lg p-4 hover:bg-gray-50 transition-colors duration-200">
           <Image
             src="/faib-logo.png"
             alt="FAIB Logo"
@@ -79,6 +96,7 @@ export default function Sidebar() {
                 ) : (
                   <Link
                     href={item.href}
+                    onClick={() => onClose()}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
                       isActive
                         ? 'bg-secondary text-primary shadow-md'
@@ -105,5 +123,6 @@ export default function Sidebar() {
         </p>
       </div>
     </aside>
+    </>
   )
 }
