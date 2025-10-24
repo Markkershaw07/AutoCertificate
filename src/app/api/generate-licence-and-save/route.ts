@@ -18,6 +18,40 @@ function formatDate(dateString: string): string {
   })
 }
 
+// Format address to wrap at commas after ~30 characters
+function formatAddress(address: string): string {
+  // Split address by commas
+  const parts = address.split(',').map(part => part.trim())
+
+  const lines: string[] = []
+  let currentLine = ''
+
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
+    const isLast = i === parts.length - 1
+
+    // If adding this part would exceed 30 chars and we already have content, start new line
+    if (currentLine && (currentLine + ', ' + part).length > 30) {
+      lines.push(currentLine + ',')
+      currentLine = part
+    } else {
+      // Add to current line
+      if (currentLine) {
+        currentLine += ', ' + part
+      } else {
+        currentLine = part
+      }
+    }
+  }
+
+  // Add the last line (without trailing comma)
+  if (currentLine) {
+    lines.push(currentLine)
+  }
+
+  return lines.join('\n')
+}
+
 export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
@@ -44,6 +78,9 @@ export async function POST(request: NextRequest) {
     const endFormatted = formatDate(membership_end_date)
     const membership_period = `${startFormatted} – ${endFormatted}`
 
+    // Format address with line breaks at commas
+    const formattedAddress = formatAddress(company_address)
+
     // Load PPTX template
     const templatePath = path.join(process.cwd(), 'templates', 'licence_template.pptx')
 
@@ -67,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Replace placeholders
     doc.render({
       company_name,
-      company_address,
+      company_address: formattedAddress,
       licence_number,
       membership_period
     })
