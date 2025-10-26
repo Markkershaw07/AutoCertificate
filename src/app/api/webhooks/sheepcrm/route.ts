@@ -106,7 +106,11 @@ export async function POST(request: NextRequest) {
     })
 
     // Call existing certificate generation endpoint
-    const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
+    // Get the base URL from the request headers
+    const protocol = request.headers.get('x-forwarded-proto') || 'http'
+    const host = request.headers.get('host') || 'localhost:3000'
+    const baseUrl = `${protocol}://${host}`
+
     const generateResponse = await fetch(`${baseUrl}/api/generate-licence-and-save`, {
       method: 'POST',
       headers: {
