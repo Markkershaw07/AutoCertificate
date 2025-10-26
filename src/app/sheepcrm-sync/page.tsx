@@ -95,7 +95,7 @@ export default function SheepCRMSyncPage() {
                   </ol>
                   <p className="mt-2 font-semibold">Example (Busy Bees):</p>
                   <p><code className="bg-blue-100 px-1 rounded">/faib/member/68d29043da49280ce946436d/</code></p>
-                  <p className="mt-2 text-xs">Note: Only "First Aid Training Provider" memberships will generate certificates.</p>
+                  <p className="mt-2 text-xs">Note: Only &quot;First Aid Training Provider&quot; memberships will generate certificates.</p>
                 </div>
               </div>
             </div>
