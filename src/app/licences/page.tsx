@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import PageHeader from '@/components/layout/PageHeader'
 
+// Updated: Removed Size column and improved company name wrapping
+
 interface LicenceFile {
   name: string
   path: string
@@ -155,14 +157,6 @@ export default function LicencesPage() {
     })
   }
 
-  const formatSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
-  }
-
   return (
     <>
       <PageHeader
@@ -274,9 +268,6 @@ export default function LicencesPage() {
                       <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Created
                       </th>
-                      <th className="text-left py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
-                        Size
-                      </th>
                       <th className="text-right py-3 px-3 lg:py-5 lg:px-8 font-bold text-primary text-xs lg:text-sm uppercase tracking-wide whitespace-nowrap">
                         Actions
                       </th>
@@ -286,11 +277,11 @@ export default function LicencesPage() {
                     {filteredLicences.map((licence) => (
                       <tr key={licence.path} className="hover:bg-secondary/15 transition-colors duration-150">
                         <td className="py-3 px-3 lg:py-5 lg:px-8">
-                          <div className="text-neutral-black font-semibold text-sm lg:text-base whitespace-nowrap">
+                          <div className="text-neutral-black font-semibold text-sm lg:text-base max-w-xs">
                             {licence.metadata?.company_name || 'N/A'}
                           </div>
                           {licence.metadata && (
-                            <div className="text-xs text-gray-500 mt-1 max-w-[150px] lg:max-w-none truncate">{licence.name}</div>
+                            <div className="text-xs text-gray-500 mt-1 max-w-[150px] lg:max-w-xs truncate">{licence.name}</div>
                           )}
                         </td>
                         <td className="py-3 px-3 lg:py-5 lg:px-8">
@@ -300,9 +291,6 @@ export default function LicencesPage() {
                         </td>
                         <td className="py-3 px-3 lg:py-5 lg:px-8 text-neutral-black text-xs lg:text-sm whitespace-nowrap">
                           {formatDate(licence.createdAt)}
-                        </td>
-                        <td className="py-3 px-3 lg:py-5 lg:px-8 text-neutral-black text-xs lg:text-sm whitespace-nowrap">
-                          {formatSize(licence.size)}
                         </td>
                         <td className="py-3 px-3 lg:py-5 lg:px-8 text-right">
                           <button

@@ -1,4 +1,4 @@
-# AutoCertificate
+3# AutoCertificate
 
 A Next.js application for generating certificate PDFs from templates.
 
