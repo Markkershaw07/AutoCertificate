@@ -1,6 +1,6 @@
-3# AutoCertificate
+3# FAIB Internal Tools
 
-A Next.js application for generating certificate PDFs from templates.
+A Next.js application providing internal automation tools for FAIB (First Aid Industry Body), including certificate generation and renewal form analysis.
 
 ## Setup
 
@@ -40,11 +40,18 @@ A Next.js application for generating certificate PDFs from templates.
 
 ## Features
 
-- Form-based certificate generation
+### Certificate Generation
+- Automatic training provider certificate generation
+- Integration with SheepCRM for member data
 - DOCX template processing with docxtemplater
 - PDF conversion via CloudConvert
-- TypeScript support
-- Tailwind CSS styling
+- Supabase storage integration
+
+### Renewal Form Analyzer (Coming Soon)
+- Automated analysis of SheepCRM renewal form submissions
+- AI-powered compliance checking
+- Automatic pricing calculation based on certificates issued and trainers
+- Auto-generated summary notes posted to organization profiles
 
 ## Built With
 

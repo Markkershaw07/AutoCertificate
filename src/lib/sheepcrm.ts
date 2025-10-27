@@ -19,14 +19,19 @@ export class SheepCRMClient {
   /**
    * Make authenticated request to SheepCRM API
    */
-  private async request<T>(endpoint: string): Promise<T> {
+  private async request<T>(endpoint: string, options?: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+    body?: any
+  }): Promise<T> {
     const url = `${this.config.baseUrl}${endpoint}`
 
     const response = await fetch(url, {
+      method: options?.method || 'GET',
       headers: {
         'Authorization': `Bearer ${this.config.apiKey}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: options?.body ? JSON.stringify(options.body) : undefined
     })
 
     if (!response.ok) {
@@ -234,6 +239,53 @@ export class SheepCRMClient {
     } catch (error: any) {
       console.error('Error fetching certificate data from SheepCRM:', error)
       throw new Error(`Failed to fetch certificate data: ${error.message}`)
+    }
+  }
+
+  /**
+   * Get form response data
+   * Used for fetching renewal form submissions
+   */
+  async getFormResponse(formResponseUri: SheepCRMUri): Promise<any> {
+    try {
+      const endpoint = `/api/v1${formResponseUri}`
+      return await this.request<any>(endpoint)
+    } catch (error: any) {
+      console.error('Error fetching form response from SheepCRM:', error)
+      throw new Error(`Failed to fetch form response: ${error.message}`)
+    }
+  }
+
+  /**
+   * Create a journal note on a contact's profile
+   * @param contactUri - The URI of the contact (organisation or person)
+   * @param subject - Subject/title of the journal entry
+   * @param note - The note content (supports markdown)
+   * @returns The created journal entry
+   */
+  async createJournalNote(
+    contactUri: SheepCRMUri,
+    subject: string,
+    note: string
+  ): Promise<any> {
+    try {
+      const { bucket } = this.parseUri(contactUri)
+      const endpoint = `/api/v1/${bucket}/journal/`
+
+      const payload = {
+        entity: contactUri,
+        title: subject,
+        body: note,
+        entry_type: 'note'
+      }
+
+      return await this.request<any>(endpoint, {
+        method: 'POST',
+        body: payload
+      })
+    } catch (error: any) {
+      console.error('Error creating journal note in SheepCRM:', error)
+      throw new Error(`Failed to create journal note: ${error.message}`)
     }
   }
 }

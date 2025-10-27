@@ -39,6 +39,24 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       ),
     },
     {
+      name: 'Renewal Analyzer',
+      href: '/renewal-analyzer',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      name: 'Assessor Applications',
+      href: '/assessor-applications',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+    },
+    {
       name: 'SheepCRM Sync',
       href: '/sheepcrm-sync',
       icon: (
@@ -125,10 +143,10 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Footer */}
       <div className="p-6 border-t border-primary-light">
         <p className="text-xs text-gray-300 text-center">
-          FAIB Internal Tool
+          FAIB Internal Tools
         </p>
         <p className="text-xs text-gray-400 text-center mt-1">
-          v1.0.0
+          v1.1.0
         </p>
       </div>
     </aside>
