@@ -48,7 +48,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
       ),
     },
     {
-      name: 'Assessor Applications',
+      name: 'Assessor Analyzer',
       href: '/assessor-applications',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

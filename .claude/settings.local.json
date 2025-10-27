@@ -19,7 +19,9 @@
       "Bash(git push:*)",
       "Bash(timeout 15 bash:*)",
       "Bash(node scripts/test-assessor-application.js:*)",
-      "Bash(APP_BASE_URL=http://localhost:3003 node scripts/test-assessor-application.js:*)"
+      "Bash(APP_BASE_URL=http://localhost:3003 node scripts/test-assessor-application.js:*)",
+      "Bash(APP_BASE_URL=http://localhost:3003 node scripts/test-assessor-manual.js:*)",
+      "Bash(node scripts/test-assessor-manual.js:*)"
     ],
     "deny": [],
     "ask": []
