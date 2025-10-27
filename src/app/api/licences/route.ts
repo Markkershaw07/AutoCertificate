@@ -355,3 +355,70 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // Validate Supabase bucket env var
+    if (!process.env.SUPABASE_BUCKET) {
+      return NextResponse.json(
+        { error: 'SUPABASE_BUCKET environment variable not configured' },
+        { status: 500 }
+      )
+    }
+
+    // Parse request body
+    const body = await request.json()
+    const { path } = body
+
+    if (!path || typeof path !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid or missing path parameter' },
+        { status: 400 }
+      )
+    }
+
+    console.log('[API DELETE] Deleting licence:', path)
+
+    // Delete the PDF file
+    const { error: deleteError } = await supabaseAdmin
+      .storage
+      .from(process.env.SUPABASE_BUCKET)
+      .remove([path])
+
+    if (deleteError) {
+      console.error('[API DELETE] Error deleting PDF:', deleteError)
+      return NextResponse.json(
+        { error: 'Failed to delete licence', details: deleteError.message },
+        { status: 500 }
+      )
+    }
+
+    // Try to delete the metadata JSON file (don't fail if it doesn't exist)
+    try {
+      await supabaseAdmin
+        .storage
+        .from(process.env.SUPABASE_BUCKET)
+        .remove([`${path}.json`])
+      console.log('[API DELETE] Metadata file deleted')
+    } catch (metaError) {
+      console.log('[API DELETE] No metadata file to delete or error deleting it')
+    }
+
+    console.log('[API DELETE] Successfully deleted licence:', path)
+
+    return NextResponse.json({
+      ok: true,
+      message: 'Licence deleted successfully'
+    })
+
+  } catch (error: any) {
+    console.error('[API DELETE] Error:', error)
+    return NextResponse.json(
+      {
+        error: 'Failed to delete licence',
+        details: error.message || 'Unknown error'
+      },
+      { status: 500 }
+    )
+  }
+}

@@ -37,6 +37,7 @@ export default function LicencesPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [downloadingPath, setDownloadingPath] = useState<string | null>(null)
+  const [deletingPath, setDeletingPath] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
 
   const limit = 20
@@ -143,6 +144,44 @@ export default function LicencesPage() {
       alert(err.message || 'Failed to download file')
     } finally {
       setDownloadingPath(null)
+    }
+  }
+
+  const handleDelete = async (licence: LicenceFile) => {
+    // Confirmation dialog
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the licence for ${licence.metadata?.company_name || licence.name}?\n\nThis action cannot be undone.`
+    )
+
+    if (!confirmDelete) {
+      return
+    }
+
+    setDeletingPath(licence.path)
+
+    try {
+      const response = await fetch('/api/licences', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ path: licence.path }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to delete licence')
+      }
+
+      // Refresh the list after successful deletion
+      await fetchLicences()
+
+    } catch (err: any) {
+      console.error('Delete error:', err)
+      alert(err.message || 'Failed to delete licence')
+    } finally {
+      setDeletingPath(null)
     }
   }
 
@@ -293,28 +332,53 @@ export default function LicencesPage() {
                           {formatDate(licence.createdAt)}
                         </td>
                         <td className="py-3 px-3 lg:py-5 lg:px-8 text-right">
-                          <button
-                            onClick={() => handleDownload(licence)}
-                            disabled={downloadingPath === licence.path}
-                            className="bg-primary hover:bg-[#2d6a68] hover:shadow-md text-white py-2 px-3 lg:px-5 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap min-h-[44px]"
-                          >
-                            {downloadingPath === licence.path ? (
-                              <>
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Downloading...
-                              </>
-                            ) : (
-                              <>
-                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                </svg>
-                                Download
-                              </>
-                            )}
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleDownload(licence)}
+                              disabled={downloadingPath === licence.path || deletingPath === licence.path}
+                              className="bg-primary hover:bg-[#2d6a68] hover:shadow-md text-white py-2 px-3 lg:px-5 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap min-h-[44px]"
+                            >
+                              {downloadingPath === licence.path ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Downloading...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                  Download
+                                </>
+                              )}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(licence)}
+                              disabled={deletingPath === licence.path || downloadingPath === licence.path}
+                              className="bg-accent-red hover:bg-red-700 hover:shadow-md text-white py-2 px-3 lg:px-5 rounded-lg font-semibold text-xs lg:text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-red focus:ring-offset-2 disabled:bg-gray-400 disabled:cursor-not-allowed inline-flex items-center whitespace-nowrap min-h-[44px]"
+                              title="Delete licence"
+                            >
+                              {deletingPath === licence.path ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Deleting...
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  Delete
+                                </>
+                              )}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
