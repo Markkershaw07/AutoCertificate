@@ -20,8 +20,7 @@ export async function GET(request: NextRequest) {
     const sheepCRM = createSheepCRMClient()
 
     // Fetch all form responses for the Trainer/Assessor application form
-    // Note: You'll need to update this endpoint based on your actual SheepCRM form URI
-    const formUri = '/faib/form/' // You'll need the actual form URI
+    const formUri = '/faib/form/66ab99d17039ceb319c18bde/'
     const endpoint = `/api/v1${formUri}responses/`
 
     console.log('Fetching assessor applications from:', endpoint)
