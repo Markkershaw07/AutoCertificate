@@ -79,24 +79,26 @@ TASK:
 Analyze this Trainer/Assessor application and provide a comprehensive review.
 
 ANALYSIS REQUIREMENTS:
-1. **Required Documents Check**: For each required document in the checklist, determine if it's present based on uploaded filenames and form answers
-2. **Additional Documents**: Note any extra documents uploaded and what they might be
+1. **Required Documents Check**: For each required document in the checklist above, determine if it's present based on uploaded filenames
+2. **Additional Documents**: Note any extra documents uploaded (like Paediatric First Aid Certificate) and what they might be
 3. **Compliance Issues**: Flag any problems:
-   - Missing required documents
+   - Missing required documents (ONLY from the checklist above - do NOT mention documents not in the list)
    - Incomplete personal information
-   - Expired certificates (if dates are visible)
-   - Qualifications that don't meet FAIB standards
+   - Expired certificates (if dates are visible in filenames or form data)
+   - Missing course numbers (should have answered 3-year and 12-month course count questions)
 4. **Strengths**: Highlight positive aspects of the application
 5. **Recommendation**: Based on the analysis, recommend one of:
    - "approve" - Application is complete and meets requirements
    - "request_more_info" - Application needs clarification or missing documents
    - "reject" - Application has serious issues
 
-IMPORTANT RULES:
-- Base your analysis ONLY on the data provided above
-- Be specific about what's missing or concerning
-- Note additional documents even if they weren't required
-- If a document filename suggests it matches a requirement (e.g., "DBS_Certificate.pdf" matches "DBS Check"), mark it as present
+CRITICAL RULES - READ CAREFULLY:
+- ONLY check for the documents in the "REQUIRED DOCUMENTS CHECKLIST" above
+- DO NOT mention DBS checks, identity verification, or any other documents not in the checklist
+- DO NOT use your knowledge of what "should" be required - only check what IS required in THIS form
+- Base your analysis ONLY on the actual form fields and uploaded documents
+- If a document filename suggests it matches a requirement (e.g., "First_Aid_Certificate.pdf"), mark it as present
+- Note additional/optional documents (like Paediatric First Aid) positively but don't mark them as "missing required"
 - Be professional and constructive in your feedback
 
 Provide your analysis in this exact JSON format:

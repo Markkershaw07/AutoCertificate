@@ -95,20 +95,17 @@ function parseAttachments(response: Record<string, any>): {
   const required: AssessorApplicationAttachment[] = []
   const additional: AssessorApplicationAttachment[] = []
 
-  // Required document field patterns
+  // Required document field patterns (matching actual form fields)
   const requiredPatterns = [
+    'first-aid-at-work-certificate',
     'first-aid-certificate',
+    'exemption-certificate',
+    'teaching-assessing-qualification',
     'teaching-qualification',
-    'teaching-certificate',
     'assessor-qualification',
-    'assessor-certificate',
-    'dbs-check',
-    'dbs-certificate',
-    'id-document',
-    'identification',
-    'proof-of-identity',
-    'insurance',
-    'professional-indemnity'
+    'annual-monitoring',
+    'insurance-certificate',
+    'insurance'
   ]
 
   // Additional document patterns
@@ -212,14 +209,13 @@ function ensureArray(value: any): string[] {
 
 /**
  * Get required document checklist for a specific form type
- * This should be customized based on your actual form structure
+ * Based on actual required fields in the Trainer/Assessor application form
  */
 export function getRequiredDocumentChecklist(): string[] {
   return [
-    'First Aid Certificate',
-    'Teaching/Assessor Qualification',
-    'DBS Check',
-    'Proof of Identity',
-    'Professional Indemnity Insurance'
+    'First Aid at Work Certificate or Exemption Certificate',
+    'Teaching/Assessing Qualification',
+    'Annual Monitoring',
+    'Insurance Certificate'
   ]
 }
