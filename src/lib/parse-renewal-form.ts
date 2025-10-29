@@ -11,6 +11,12 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
   const { data } = formResponse
   const response = data.response
 
+  // Log ALL response fields to help debug field name mismatches
+  console.log('[parse-renewal-form] ALL RESPONSE FIELDS:')
+  Object.keys(response).forEach(key => {
+    console.log(`  ${key}: ${response[key]}`)
+  })
+
   // Extract organization and contact information
   const organizationUri = data.context_ref?.[0]?.ref || ''
   const organizationName = data.context_ref?.[0]?.display_value || ''
