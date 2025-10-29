@@ -94,6 +94,80 @@ export async function POST(request: NextRequest) {
     const content = fs.readFileSync(templatePath, 'binary')
     const zip = new PizZip(content)
 
+    // Adjust font size BEFORE template rendering based on company name length
+    if (company_name.length > 35) {
+      try {
+        // Get the slide XML (usually slide1.xml)
+        const slideXml = zip.files['ppt/slides/slide1.xml']?.asText()
+
+        if (slideXml) {
+          // Determine font size based on length (in half-points: 1pt = 200 half-points)
+          let fontSize = 5600 // Default 28pt
+          if (company_name.length > 55) {
+            fontSize = 3400 // 17pt for extremely long names (55+ chars)
+          } else if (company_name.length > 50) {
+            fontSize = 3800 // 19pt for very long names (50-55 chars)
+          } else if (company_name.length > 43) {
+            fontSize = 4200 // 21pt for long names (43-50 chars)
+          } else if (company_name.length > 35) {
+            fontSize = 4800 // 24pt for moderately long names (35-43 chars)
+          }
+
+          console.log(`[Font Adjustment] Company name length: ${company_name.length} chars, setting font to ${fontSize/200}pt`)
+
+          // Find the placeholder {{company_name}} in the template
+          const placeholderPattern = /\{\{company_name\}\}/
+          const placeholderIndex = slideXml.search(placeholderPattern)
+
+          let modifiedSlideXml = slideXml
+
+          if (placeholderIndex !== -1) {
+            console.log(`[Font Adjustment] Found {{company_name}} placeholder at position ${placeholderIndex}`)
+
+            // Strategy 1: Find font size tags in the vicinity of the placeholder
+            // Look backwards up to 1000 characters to find the font size definition
+            const searchStart = Math.max(0, placeholderIndex - 1000)
+            const beforePlaceholder = slideXml.substring(searchStart, placeholderIndex)
+
+            // Find all <a:sz val="XXXX"/> tags before the placeholder
+            const fontSizeRegex = /<a:sz val="(\d+)"/g
+            let lastFontSizeMatch
+            let match
+
+            while ((match = fontSizeRegex.exec(beforePlaceholder)) !== null) {
+              lastFontSizeMatch = {
+                fullMatch: match[0],
+                value: match[1],
+                index: searchStart + match.index
+              }
+            }
+
+            if (lastFontSizeMatch) {
+              // Replace the last font size before the placeholder
+              const absoluteIndex = lastFontSizeMatch.index
+              const beforeFontTag = slideXml.substring(0, absoluteIndex)
+              const afterFontTag = slideXml.substring(absoluteIndex + lastFontSizeMatch.fullMatch.length)
+              modifiedSlideXml = beforeFontTag + `<a:sz val="${fontSize}"` + afterFontTag
+
+              console.log(`[Font Adjustment] Replaced font size from ${lastFontSizeMatch.value} to ${fontSize} at position ${absoluteIndex}`)
+            } else {
+              console.log(`[Font Adjustment] Could not find font size tag near placeholder`)
+            }
+          } else {
+            console.log(`[Font Adjustment] Could not find {{company_name}} placeholder in template`)
+          }
+
+          // Update the slide in the zip
+          zip.file('ppt/slides/slide1.xml', modifiedSlideXml)
+
+          console.log(`[Font Adjustment] Successfully set company name font to ${fontSize/200}pt for "${company_name}" (${company_name.length} chars)`)
+        }
+      } catch (err) {
+        console.error('[Font Adjustment] Error adjusting font size:', err)
+        // Continue anyway - template will use default size
+      }
+    }
+
     // Configure Docxtemplater with {{}} delimiters
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
@@ -109,76 +183,8 @@ export async function POST(request: NextRequest) {
       membership_period
     })
 
-    // Get the zip object to modify font sizes if needed
-    const modifiedZip = doc.getZip()
-
-    // Adjust font size based on company name length
-    if (company_name.length > 35) {
-      try {
-        // Get the slide XML (usually slide1.xml)
-        const slideXml = modifiedZip.files['ppt/slides/slide1.xml']?.asText()
-
-        if (slideXml) {
-          // Determine font size based on length (in half-points: 1pt = 200 half-points)
-          let fontSize = 5600 // Default 28pt
-          if (company_name.length > 43) {
-            fontSize = 4000 // 20pt for very long names (43+ chars)
-          } else if (company_name.length > 35) {
-            fontSize = 4800 // 24pt for moderately long names (35-43 chars)
-          }
-
-          // Escape company name for regex to handle special characters
-          const escapedName = company_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-          // Strategy: Find the company name in the XML and replace font sizes in that section
-          // Split the name into parts to handle potential multi-run text
-          const nameParts = escapedName.split(/\s+/)
-          const firstPart = nameParts[0]
-
-          // Find the section of XML containing the company name
-          const nameStartIndex = slideXml.indexOf(`<a:t>${company_name}</a:t>`)
-          const nameStartIndexPartial = slideXml.indexOf(`<a:t>${firstPart}`)
-
-          let modifiedSlideXml = slideXml
-
-          if (nameStartIndex !== -1) {
-            // Company name is in a single text run - easier case
-            // Find the <a:sz> tag before this text
-            const beforeText = slideXml.substring(0, nameStartIndex)
-            const lastSzIndex = beforeText.lastIndexOf('<a:sz val="')
-
-            if (lastSzIndex !== -1) {
-              const szEndIndex = slideXml.indexOf('"', lastSzIndex + 11)
-              const beforeSz = slideXml.substring(0, lastSzIndex + 11)
-              const afterSz = slideXml.substring(szEndIndex)
-              modifiedSlideXml = beforeSz + fontSize + afterSz
-            }
-          } else if (nameStartIndexPartial !== -1) {
-            // Company name might be split across runs - replace all font sizes in that region
-            // Get a range around where the name appears (500 chars before and after)
-            const rangeStart = Math.max(0, nameStartIndexPartial - 500)
-            const rangeEnd = Math.min(slideXml.length, nameStartIndexPartial + company_name.length + 500)
-            const textRange = slideXml.substring(rangeStart, rangeEnd)
-
-            // Replace all <a:sz val="XXXX"/> in this range
-            const modifiedRange = textRange.replace(/<a:sz val="\d+"/g, `<a:sz val="${fontSize}"`)
-
-            modifiedSlideXml = slideXml.substring(0, rangeStart) + modifiedRange + slideXml.substring(rangeEnd)
-          }
-
-          // Update the slide in the zip
-          modifiedZip.file('ppt/slides/slide1.xml', modifiedSlideXml)
-
-          console.log(`[Font Adjustment] Set company name font to ${fontSize/200}pt for "${company_name}" (${company_name.length} chars)`)
-        }
-      } catch (err) {
-        console.error('Error adjusting font size:', err)
-        // Continue anyway - template will use default size
-      }
-    }
-
     // Generate filled PPTX buffer
-    const filledPptxBuffer = modifiedZip.generate({
+    const filledPptxBuffer = doc.getZip().generate({
       type: 'nodebuffer',
       compression: 'DEFLATE'
     })
