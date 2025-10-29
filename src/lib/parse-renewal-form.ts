@@ -25,7 +25,14 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
     if (!fieldKey) return 0
     const value = response[fieldKey]
     const parsed = parseInt(String(value || '0')) || 0
-    return Math.max(0, parsed) // Treat negative values as 0
+    const result = Math.max(0, parsed) // Treat negative values as 0
+
+    // Debug logging to help diagnose field matching issues
+    if (result > 0) {
+      console.log(`[parse-renewal-form] Found ${suffix}: ${result} (field: ${fieldKey})`)
+    }
+
+    return result
   }
 
   // Standard courses
@@ -37,19 +44,19 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
   const outdoorFirstAid = findFieldValue('.outdoor-first-aid')
   const emergencyOutdoorFirstAid = findFieldValue('.emergency-outdoor-first-aid')
 
-  // Combined courses
-  const fawPfa = findFieldValue('.faw-pfa')
-  const fawEpfa = findFieldValue('.faw-epfa')
-  const efawEpfa = findFieldValue('.efaw-epfa')
-  const pfaEfaw = findFieldValue('.pfa-efaw')
+  // Combined courses (try multiple separator formats: +, -, and no separator)
+  const fawPfa = findFieldValue('.faw+pfa') || findFieldValue('.faw-+-pfa') || findFieldValue('.faw-pfa')
+  const fawEpfa = findFieldValue('.faw+epfa') || findFieldValue('.faw-+-epfa') || findFieldValue('.faw-epfa')
+  const efawEpfa = findFieldValue('.efaw+epfa') || findFieldValue('.efaw-+-epfa') || findFieldValue('.efaw-epfa')
+  const pfaEfaw = findFieldValue('.pfa+efaw') || findFieldValue('.pfa-+-efaw') || findFieldValue('.pfa-efaw')
 
   // Refresher and specialized courses
   const firstAidAnnualRefresher = findFieldValue('.first-aid-annual-refresher')
-  const blsAed = findFieldValue('.bls-aed')
+  const blsAed = findFieldValue('.bls+aed') || findFieldValue('.bls-+-aed') || findFieldValue('.bls-aed') || findFieldValue('.blsaed')
 
-  // Forestry courses
-  const fawForestry = findFieldValue('.faw-forestry')
-  const efawForestry = findFieldValue('.efaw-forestry')
+  // Forestry courses (try + separator as well)
+  const fawForestry = findFieldValue('.faw+forestry') || findFieldValue('.faw-forestry')
+  const efawForestry = findFieldValue('.efaw+forestry') || findFieldValue('.efaw-forestry')
   const forestSchoolsFirstAid = findFieldValue('.forest-schools-first-aid')
   const emergencyForestSchoolsFirstAid = findFieldValue('.emergency-forest-schools-first-aid')
 
@@ -57,6 +64,8 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
     fawPfa + fawEpfa + efawEpfa + pfaEfaw +
     firstAidAnnualRefresher + blsAed +
     fawForestry + efawForestry + forestSchoolsFirstAid + emergencyForestSchoolsFirstAid
+
+  console.log(`[parse-renewal-form] Total certificates: ${totalCertificates}`)
 
   // Parse trainer information using dynamic field matching
   const findFieldString = (suffix: string): string => {
