@@ -137,6 +137,7 @@ export interface RenewalFormSubmission {
 
   // Certificate counts by type
   certificateCounts: {
+    // Standard courses
     efaw?: number
     faw?: number
     fawr?: number
@@ -144,6 +145,19 @@ export interface RenewalFormSubmission {
     emergencyPfa?: number
     outdoorFirstAid?: number
     emergencyOutdoorFirstAid?: number
+    // Combined courses
+    fawPfa?: number
+    fawEpfa?: number
+    efawEpfa?: number
+    pfaEfaw?: number
+    // Refresher and specialized courses
+    firstAidAnnualRefresher?: number
+    blsAed?: number
+    // Forestry courses
+    fawForestry?: number
+    efawForestry?: number
+    forestSchoolsFirstAid?: number
+    emergencyForestSchoolsFirstAid?: number
     total: number
   }
 
