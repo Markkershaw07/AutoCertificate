@@ -27,7 +27,7 @@ export default function SheepCRMSyncPage() {
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.details || data.error || 'Failed to sync from SheepCRM')
+        throw new Error(data.details || data.error || 'Failed to generate certificate')
       }
 
       // Store success data
@@ -73,8 +73,8 @@ export default function SheepCRMSyncPage() {
   return (
     <>
       <PageHeader
-        title="SheepCRM Sync"
-        description="Manually trigger certificate generation from SheepCRM member data"
+        title="URL Licence Generator"
+        description="Generate certificates by providing a direct member URL from your CRM"
       />
 
       <div className="max-w-3xl">
@@ -87,9 +87,9 @@ export default function SheepCRMSyncPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div className="text-sm text-blue-700">
-                  <p className="font-semibold mb-1">How to find the Member URI:</p>
+                  <p className="font-semibold mb-1">How to find the Member URL:</p>
                   <ol className="list-decimal list-inside space-y-1 ml-2">
-                    <li>Go to SheepCRM and open the Training Provider&apos;s membership record</li>
+                    <li>Go to your CRM and open the Training Provider&apos;s membership record</li>
                     <li>Look for the <strong>Member URI</strong> (NOT the person/organisation URI)</li>
                     <li>Format: <code className="bg-blue-100 px-1 rounded">/bucket/member/uid/</code></li>
                   </ol>
@@ -103,7 +103,7 @@ export default function SheepCRMSyncPage() {
             {/* Member URI Input */}
             <div>
               <label htmlFor="person_uri" className="block text-sm font-semibold text-neutral-black mb-2">
-                SheepCRM Member URI *
+                Member URL *
               </label>
               <input
                 type="text"
@@ -132,10 +132,10 @@ export default function SheepCRMSyncPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Syncing from SheepCRM...
+                    Generating Certificate...
                   </>
                 ) : (
-                  'Generate Certificate from SheepCRM'
+                  'Generate Certificate from URL'
                 )}
               </button>
             </div>
@@ -196,13 +196,13 @@ export default function SheepCRMSyncPage() {
 
         {/* Info Section */}
         <div className="mt-6 card bg-gray-50">
-          <h3 className="text-lg font-bold text-navy mb-3">About Automatic Sync</h3>
+          <h3 className="text-lg font-bold text-navy mb-3">About Automatic Generation</h3>
           <p className="text-neutral-black mb-4">
             This page is for manual testing and troubleshooting. In production, certificates will be automatically generated when:
           </p>
           <ul className="list-disc list-inside space-y-2 text-neutral-black">
-            <li>A training provider makes a payment in SheepCRM</li>
-            <li>SheepCRM sends a webhook to your application</li>
+            <li>A training provider makes a payment in your CRM</li>
+            <li>Your CRM sends a webhook to this application</li>
             <li>The certificate is auto-generated and stored</li>
           </ul>
           <p className="text-neutral-black mt-4 text-sm">
