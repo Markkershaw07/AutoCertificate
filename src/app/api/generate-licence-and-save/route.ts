@@ -115,46 +115,39 @@ export async function POST(request: NextRequest) {
 
           console.log(`[Font Adjustment] Company name length: ${company_name.length} chars, setting font to ${fontSize/200}pt`)
 
-          // Find the placeholder {{company_name}} in the template
-          const placeholderPattern = /\{\{company_name\}\}/
-          const placeholderIndex = slideXml.search(placeholderPattern)
+          // Find the placeholder - it may be split across multiple XML runs
+          // Look for just "company_name" text instead of the full {{company_name}}
+          const placeholderIndex = slideXml.indexOf('company_name')
 
           let modifiedSlideXml = slideXml
 
           if (placeholderIndex !== -1) {
-            console.log(`[Font Adjustment] Found {{company_name}} placeholder at position ${placeholderIndex}`)
+            console.log(`[Font Adjustment] Found company_name placeholder text at position ${placeholderIndex}`)
 
-            // Strategy 1: Find font size tags in the vicinity of the placeholder
-            // Look backwards up to 1000 characters to find the font size definition
-            const searchStart = Math.max(0, placeholderIndex - 1000)
-            const beforePlaceholder = slideXml.substring(searchStart, placeholderIndex)
+            // Strategy: Replace ALL font sizes in a wide range around the placeholder
+            // PowerPoint often splits {{company_name}} into multiple text runs
+            // Look backwards up to 2000 characters to catch all related font definitions
+            const searchStart = Math.max(0, placeholderIndex - 2000)
+            const searchEnd = Math.min(slideXml.length, placeholderIndex + 500)
+            const searchRange = slideXml.substring(searchStart, searchEnd)
 
-            // Find all <a:sz val="XXXX"/> tags before the placeholder
-            const fontSizeRegex = /<a:sz val="(\d+)"/g
-            let lastFontSizeMatch
-            let match
+            // Find and replace ALL <a:sz val="XXXX"/> tags in this range
+            const fontSizeRegex = /<a:sz val="\d+"/g
+            const matches = searchRange.match(fontSizeRegex)
 
-            while ((match = fontSizeRegex.exec(beforePlaceholder)) !== null) {
-              lastFontSizeMatch = {
-                fullMatch: match[0],
-                value: match[1],
-                index: searchStart + match.index
-              }
-            }
+            if (matches && matches.length > 0) {
+              console.log(`[Font Adjustment] Found ${matches.length} font size tags near placeholder, replacing all`)
 
-            if (lastFontSizeMatch) {
-              // Replace the last font size before the placeholder
-              const absoluteIndex = lastFontSizeMatch.index
-              const beforeFontTag = slideXml.substring(0, absoluteIndex)
-              const afterFontTag = slideXml.substring(absoluteIndex + lastFontSizeMatch.fullMatch.length)
-              modifiedSlideXml = beforeFontTag + `<a:sz val="${fontSize}"` + afterFontTag
+              // Replace all font sizes in the range with the target size
+              const modifiedRange = searchRange.replace(fontSizeRegex, `<a:sz val="${fontSize}"`)
+              modifiedSlideXml = slideXml.substring(0, searchStart) + modifiedRange + slideXml.substring(searchEnd)
 
-              console.log(`[Font Adjustment] Replaced font size from ${lastFontSizeMatch.value} to ${fontSize} at position ${absoluteIndex}`)
+              console.log(`[Font Adjustment] Replaced ${matches.length} font size tags from various sizes to ${fontSize}`)
             } else {
-              console.log(`[Font Adjustment] Could not find font size tag near placeholder`)
+              console.log(`[Font Adjustment] Could not find any font size tags near placeholder`)
             }
           } else {
-            console.log(`[Font Adjustment] Could not find {{company_name}} placeholder in template`)
+            console.log(`[Font Adjustment] Could not find company_name placeholder text in template`)
           }
 
           // Update the slide in the zip
