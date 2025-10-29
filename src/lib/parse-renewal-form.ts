@@ -58,7 +58,7 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
 
   // Refresher and specialized courses
   const firstAidAnnualRefresher = findFieldValue('.first-aid-annual-refresher')
-  const blsAed = findFieldValue('.bls+aed') || findFieldValue('.bls-+-aed') || findFieldValue('.bls-aed') || findFieldValue('.blsaed')
+  const blsAed = findFieldValue('.other-bls-courses') || findFieldValue('.bls+aed') || findFieldValue('.bls-+-aed') || findFieldValue('.bls-aed') || findFieldValue('.blsaed')
 
   // Forestry courses (try + separator as well)
   const fawForestry = findFieldValue('.faw+forestry') || findFieldValue('.faw-forestry')
