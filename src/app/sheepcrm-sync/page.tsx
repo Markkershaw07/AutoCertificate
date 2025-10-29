@@ -3,11 +3,24 @@
 import { useState, FormEvent } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
 
+interface AdminContact {
+  name: string
+  email: string | null
+}
+
+interface SuccessData {
+  companyName: string
+  licenceNumber: string
+  signedUrl?: string
+  adminContact?: AdminContact
+}
+
 export default function SheepCRMSyncPage() {
   const [personUri, setPersonUri] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [successData, setSuccessData] = useState<{ companyName: string; licenceNumber: string; signedUrl?: string } | null>(null)
+  const [successData, setSuccessData] = useState<SuccessData | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [copiedEmail, setCopiedEmail] = useState(false)
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -34,7 +47,8 @@ export default function SheepCRMSyncPage() {
       setSuccessData({
         companyName: data.data.company_name,
         licenceNumber: data.data.licence_number,
-        signedUrl: data.data.signed_url
+        signedUrl: data.data.signed_url,
+        adminContact: data.data.admin_contact
       })
 
       // Clear form
@@ -67,6 +81,20 @@ export default function SheepCRMSyncPage() {
       URL.revokeObjectURL(blobUrl)
     } catch (err: any) {
       alert(err.message || 'Failed to download file')
+    }
+  }
+
+  const handleCopyEmail = async (email: string) => {
+    try {
+      await navigator.clipboard.writeText(email)
+      setCopiedEmail(true)
+
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedEmail(false)
+      }, 2000)
+    } catch (err) {
+      alert('Failed to copy email to clipboard')
     }
   }
 
@@ -158,9 +186,47 @@ export default function SheepCRMSyncPage() {
                 <p className="text-neutral-black mb-1">
                   <strong>Training Provider:</strong> {successData.companyName}
                 </p>
-                <p className="text-neutral-black mb-5">
+                <p className="text-neutral-black mb-3">
                   <strong>Licence Number:</strong> {successData.licenceNumber}
                 </p>
+
+                {/* Admin Contact Section */}
+                {successData.adminContact ? (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-5">
+                    <h4 className="text-sm font-bold text-navy mb-2">Admin Contact</h4>
+                    <p className="text-neutral-black text-sm mb-1">
+                      <strong>Name:</strong> {successData.adminContact.name}
+                    </p>
+                    {successData.adminContact.email ? (
+                      <div className="flex items-center gap-2">
+                        <p className="text-neutral-black text-sm">
+                          <strong>Email:</strong> {successData.adminContact.email}
+                        </p>
+                        <button
+                          onClick={() => handleCopyEmail(successData.adminContact!.email!)}
+                          className={`px-3 py-1 text-xs font-semibold rounded transition-colors ${
+                            copiedEmail
+                              ? 'bg-accent-green text-white'
+                              : 'bg-navy text-white hover:bg-navy/90'
+                          }`}
+                        >
+                          {copiedEmail ? 'Copied!' : 'Copy Email'}
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-neutral-black text-sm text-gray-500">
+                        <strong>Email:</strong> Not available
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-5">
+                    <p className="text-neutral-black text-sm text-gray-600">
+                      No admin contact available
+                    </p>
+                  </div>
+                )}
+
                 {successData.signedUrl && (
                   <button
                     onClick={handleDownload}

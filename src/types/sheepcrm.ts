@@ -72,6 +72,12 @@ export interface SheepCRMWebhookPayload {
   signature?: string
 }
 
+// Admin Contact Info
+export interface AdminContactInfo {
+  name: string
+  email: string | null
+}
+
 // Certificate Data (mapped from SheepCRM)
 export interface CertificateData {
   company_name: string
@@ -79,6 +85,7 @@ export interface CertificateData {
   licence_number: string
   membership_start_date: string
   membership_end_date: string
+  admin_contact?: AdminContactInfo
 }
 
 // API Error Response

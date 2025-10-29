@@ -6,6 +6,7 @@ import {
   PersonMembershipAllResponse,
   MembershipRecord,
   CertificateData,
+  AdminContactInfo,
   SheepCRMErrorResponse
 } from '@/types/sheepcrm'
 
@@ -116,6 +117,35 @@ export class SheepCRMClient {
   }
 
   /**
+   * Get admin contact information (name and email)
+   * Returns null email if not available
+   */
+  async getAdminContactInfo(adminContactUri: SheepCRMUri): Promise<AdminContactInfo> {
+    try {
+      const fullRecord = await this.getFullRecord(adminContactUri)
+
+      // Get the display name
+      const name = fullRecord.display_value || 'Unknown Contact'
+
+      // Try to get email from various possible locations in the record
+      let email: string | null = null
+
+      if (fullRecord.data?.email) {
+        email = fullRecord.data.email
+      } else if (fullRecord.data?.communications?.email) {
+        email = fullRecord.data.communications.email
+      } else if (fullRecord.data?.primary_email) {
+        email = fullRecord.data.primary_email
+      }
+
+      return { name, email }
+    } catch (error: any) {
+      console.error('Error fetching admin contact info:', error)
+      throw new Error(`Failed to fetch admin contact info: ${error.message}`)
+    }
+  }
+
+  /**
    * Get all memberships for a person
    */
   async getPersonMemberships(personUri: SheepCRMUri): Promise<PersonMembershipAllResponse> {
@@ -185,24 +215,53 @@ export class SheepCRMClient {
       // Get the person/organisation URI from the member record
       const contactUri = memberRecord.data.member.ref
 
-      // Fetch contact details
-      const [companyName, companyAddress] = await Promise.all([
+      // Check if admin contact exists
+      const adminContactUri = memberRecord.data.admin_contact?.ref
+
+      // Fetch contact details and admin contact in parallel
+      const promises = [
         this.getContactName(contactUri),
         this.getContactAddress(contactUri)
-      ])
+      ] as const
 
-      // Format membership dates (use actual dates from SheepCRM)
-      const dates = this.formatMembershipDates(
-        memberRecord.data.start_date,
-        memberRecord.data.end_date
-      )
+      // Add admin contact fetch if available
+      if (adminContactUri) {
+        const [companyName, companyAddress, adminContact] = await Promise.all([
+          ...promises,
+          this.getAdminContactInfo(adminContactUri)
+        ])
 
-      return {
-        company_name: companyName,
-        company_address: companyAddress,
-        licence_number: memberRecord.data.membership_number,
-        membership_start_date: dates.start,
-        membership_end_date: dates.end
+        // Format membership dates (use actual dates from SheepCRM)
+        const dates = this.formatMembershipDates(
+          memberRecord.data.start_date,
+          memberRecord.data.end_date
+        )
+
+        return {
+          company_name: companyName,
+          company_address: companyAddress,
+          licence_number: memberRecord.data.membership_number,
+          membership_start_date: dates.start,
+          membership_end_date: dates.end,
+          admin_contact: adminContact
+        }
+      } else {
+        // No admin contact available
+        const [companyName, companyAddress] = await Promise.all(promises)
+
+        // Format membership dates (use actual dates from SheepCRM)
+        const dates = this.formatMembershipDates(
+          memberRecord.data.start_date,
+          memberRecord.data.end_date
+        )
+
+        return {
+          company_name: companyName,
+          company_address: companyAddress,
+          licence_number: memberRecord.data.membership_number,
+          membership_start_date: dates.start,
+          membership_end_date: dates.end
+        }
       }
     } catch (error: any) {
       console.error('Error fetching certificate data from SheepCRM:', error)

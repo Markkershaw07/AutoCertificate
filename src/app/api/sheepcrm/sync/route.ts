@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
         company_name: certificateData.company_name,
         licence_number: certificateData.licence_number,
         storage_path: result.path,
-        signed_url: result.signedUrl
+        signed_url: result.signedUrl,
+        admin_contact: certificateData.admin_contact
       }
     })
 
