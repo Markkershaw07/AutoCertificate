@@ -82,7 +82,7 @@ CRITICAL RULES - READ CAREFULLY:
 - Leave missingItems empty [] unless you can clearly see an option exists but wasn't checked
 
 SPECIAL CHECKS:
-- FAIB Books: Check if ANY checkbox in the teaching materials array contains the text "FAIB First Aid books" (case-insensitive). If NO checkbox contains this text, flag as CRITICAL compliance issue. If ANY checkbox contains it, they ARE using FAIB books.
+- FAIB Books: Look for a field key in FORM ANSWERS that contains "acceptable-teaching-materials". The value will be a comma-separated string of checked items. Check if this string contains the text "Are you using the new FAIB First Aid books" (case-insensitive). If the field doesn't exist OR the string doesn't contain this text, flag as CRITICAL compliance issue stating they are NOT using FAIB books. If the text IS present anywhere in that string, they ARE using FAIB books and this should NOT be flagged as an issue.
 - Blended Courses: Note if they run blended courses
 - Name discrepancies: Flag any mismatches between form data and organization name
 
