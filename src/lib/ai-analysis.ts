@@ -165,7 +165,27 @@ When in doubt, do NOT add items to missingItems. Focus on the positive (what's t
  */
 export function formatAnalysisNote(
   analysis: AnalysisResult,
-  pricingBreakdown: string
+  pricingBreakdown: string,
+  certificateBreakdown?: {
+    efaw?: number
+    faw?: number
+    fawr?: number
+    pfa?: number
+    emergencyPfa?: number
+    outdoorFirstAid?: number
+    emergencyOutdoorFirstAid?: number
+    fawPfa?: number
+    fawEpfa?: number
+    efawEpfa?: number
+    pfaEfaw?: number
+    firstAidAnnualRefresher?: number
+    blsAed?: number
+    fawForestry?: number
+    efawForestry?: number
+    forestSchoolsFirstAid?: number
+    emergencyForestSchoolsFirstAid?: number
+    total: number
+  }
 ): string {
   const lines: string[] = []
 
@@ -182,6 +202,47 @@ export function formatAnalysisNote(
   lines.push(`- Certificates Issued: ${analysis.certificateCount.toLocaleString()}`)
   lines.push(`- Trainers Renewing: ${analysis.trainerCount}`)
   lines.push('')
+
+  // Certificate Breakdown
+  if (certificateBreakdown) {
+    lines.push('**Certificate Breakdown:**')
+
+    const certMap: Record<string, string> = {
+      efaw: 'EFAW',
+      faw: 'FAW',
+      fawr: 'FAWR Requalification',
+      pfa: 'PFA',
+      emergencyPfa: 'Emergency PFA',
+      outdoorFirstAid: 'Outdoor First Aid',
+      emergencyOutdoorFirstAid: 'Emergency Outdoor First Aid',
+      fawPfa: 'FAW + PFA',
+      fawEpfa: 'FAW + EPFA',
+      efawEpfa: 'EFAW + EPFA',
+      pfaEfaw: 'PFA + EFAW',
+      firstAidAnnualRefresher: 'First Aid Annual Refresher',
+      blsAed: 'BLS + AED',
+      fawForestry: 'FAW + Forestry',
+      efawForestry: 'EFAW + Forestry',
+      forestSchoolsFirstAid: 'Forest Schools First Aid',
+      emergencyForestSchoolsFirstAid: 'Emergency Forest Schools First Aid'
+    }
+
+    let hasCertificates = false
+    for (const [key, label] of Object.entries(certMap)) {
+      const count = certificateBreakdown[key as keyof typeof certificateBreakdown]
+      if (count && count > 0) {
+        lines.push(`- ${label}: ${count.toLocaleString()}`)
+        hasCertificates = true
+      }
+    }
+
+    if (hasCertificates) {
+      lines.push('')
+      lines.push('*Note: Any negative numbers in the form have been converted to positive values.*')
+    }
+
+    lines.push('')
+  }
 
   // Trainer Details
   if (analysis.trainerDetails) {

@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Format the complete note
-    const noteContent = formatAnalysisNote(analysis, pricingBreakdown)
+    const noteContent = formatAnalysisNote(analysis, pricingBreakdown, renewalData.certificateCounts)
 
     // Get today's date for the subject
     const today = new Date().toISOString().split('T')[0]

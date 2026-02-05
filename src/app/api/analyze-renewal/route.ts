@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Format the complete note
-    const noteContent = formatAnalysisNote(analysis, pricingBreakdown)
+    const noteContent = formatAnalysisNote(analysis, pricingBreakdown, renewalData.certificateCounts)
 
     // Optionally post to SheepCRM if requested
     let journalEntryUri = null
