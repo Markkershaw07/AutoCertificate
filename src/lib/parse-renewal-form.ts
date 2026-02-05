@@ -95,10 +95,23 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
   console.log(`[parse-renewal-form] Total certificates: ${totalCertificates}`)
 
   // Parse trainer information using dynamic field matching
+  // For 2026 forms: Handle " (copy)" suffix
   const findFieldString = (suffix: string): string => {
-    const fieldKey = Object.keys(response).find(key => key.endsWith(suffix))
-    if (!fieldKey) return ''
-    return String(response[fieldKey] || '')
+    // Try multiple patterns to handle different form versions
+    const patterns = [
+      suffix + ' (copy)',  // 2026 form format
+      suffix               // Pre-2026 form format
+    ]
+
+    // Find matching field
+    for (const pattern of patterns) {
+      const fieldKey = Object.keys(response).find(key => key.endsWith(pattern))
+      if (fieldKey) {
+        return String(response[fieldKey] || '')
+      }
+    }
+
+    return ''
   }
 
   const numberOfTrainersStr = findFieldString('how-many-trainerassessors-do-you-want-to-renew-this-year') || '0'
