@@ -197,6 +197,122 @@ export default function RenewalAnalyzer() {
               )}
             </div>
 
+            {/* Certificate Breakdown */}
+            {analysisResult.certificates.breakdown && (
+              <div className="card">
+                <h3 className="text-lg font-bold text-navy mb-4 uppercase tracking-wide">Certificate Breakdown</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {analysisResult.certificates.breakdown.efaw > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">EFAW</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.efaw.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.faw > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">FAW</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.faw.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.fawr > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">FAWR Requalification</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.fawr.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.pfa > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">PFA</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.pfa.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.emergencyPfa > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Emergency PFA</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.emergencyPfa.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.outdoorFirstAid > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Outdoor First Aid</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.outdoorFirstAid.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.emergencyOutdoorFirstAid > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Emergency Outdoor First Aid</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.emergencyOutdoorFirstAid.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.fawPfa > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">FAW + PFA</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.fawPfa.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.fawEpfa > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">FAW + EPFA</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.fawEpfa.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.efawEpfa > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">EFAW + EPFA</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.efawEpfa.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.pfaEfaw > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">PFA + EFAW</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.pfaEfaw.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.firstAidAnnualRefresher > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">First Aid Annual Refresher</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.firstAidAnnualRefresher.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.blsAed > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">BLS + AED</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.blsAed.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.fawForestry > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">FAW + Forestry</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.fawForestry.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.efawForestry > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">EFAW + Forestry</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.efawForestry.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.forestSchoolsFirstAid > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Forest Schools First Aid</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.forestSchoolsFirstAid.toLocaleString()}</p>
+                    </div>
+                  )}
+                  {analysisResult.certificates.breakdown.emergencyForestSchoolsFirstAid > 0 && (
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="text-xs font-semibold text-gray-600 mb-1">Emergency Forest Schools First Aid</p>
+                      <p className="text-lg font-bold text-neutral-black">{analysisResult.certificates.breakdown.emergencyForestSchoolsFirstAid.toLocaleString()}</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 italic">
+                    Note: Any negative numbers in the form have been converted to positive values.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Pricing Breakdown */}
             <div className="card">
               <h3 className="text-lg font-bold text-navy mb-4 uppercase tracking-wide">Pricing Breakdown</h3>
