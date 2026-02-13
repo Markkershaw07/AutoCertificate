@@ -82,16 +82,18 @@ CRITICAL RULES - READ CAREFULLY:
 - Leave missingItems empty [] unless you can clearly see an option exists but wasn't checked
 
 SPECIAL CHECKS:
-- FAIB Books: Look for a field key in FORM ANSWERS that contains "acceptable-teaching-materials". The value will be a comma-separated string of checked items. Check if this string contains the text "Are you using the new FAIB First Aid books" (case-insensitive). If the field doesn't exist OR the string doesn't contain this text, flag as CRITICAL compliance issue stating they are NOT using FAIB books. If the text IS present anywhere in that string, they ARE using FAIB books and this should NOT be flagged as an issue.
+- FAIB Books: Look in the FORM ANSWERS for "teachingMaterialsUsed" field. This will be an array of strings representing the checkboxes that were checked. Check if ANY item in this array contains the text "FAIB First Aid books" or "new FAIB" (case-insensitive). If the array exists AND contains this text, they ARE using FAIB books - DO NOT FLAG THIS. ONLY flag as a compliance issue if the teachingMaterialsUsed field exists but does NOT contain any reference to FAIB books.
 - Blended Courses: Note if they run blended courses
 - Name discrepancies: Flag any mismatches between form data and organization name
 
 WHAT TO FOCUS ON - complianceIssues:
 - ONLY flag issues you can see in the actual form responses
 - Name discrepancies (form vs organization name)
-- If FAIB books checkbox is missing (check exact text match)
+- If FAIB books are NOT being used (check teachingMaterialsUsed array carefully)
 - Manual systems with high certificate volumes
 - Do NOT make up compliance requirements not in the form
+
+REMEMBER: If teachingMaterialsUsed array contains any reference to "FAIB" or "FAIB books", they ARE using FAIB books. This is GOOD and should NOT be flagged as an issue.
 
 Provide your analysis in this exact JSON format:
 {

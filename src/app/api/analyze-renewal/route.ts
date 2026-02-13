@@ -51,11 +51,21 @@ export async function POST(request: NextRequest) {
     const pricingBreakdown = formatPricingBreakdown(pricing)
 
     // Analyze form with AI
+    // Pass structured data including parsed arrays for proper analysis
     const analysis = await analyzeRenewalForm({
       certificatesIssued: renewalData.certificateCounts.total,
       numberOfTrainers: renewalData.numberOfTrainers,
       trainerNames: renewalData.trainerNames,
-      formAnswers: renewalData.rawResponse,
+      formAnswers: {
+        ...renewalData.rawResponse,
+        // Include parsed structured data for easier AI analysis
+        teachingMaterialsUsed: renewalData.teachingMaterialsUsed,
+        adminSystemRecords: renewalData.adminSystemRecords,
+        certificateContains: renewalData.certificateContains,
+        trainerPortfolioItems: renewalData.trainerPortfolioItems,
+        qualityAssuranceCovers: renewalData.qualityAssuranceCovers,
+        hasBlendedCourses: renewalData.hasBlendedCourses
+      },
       organizationName: renewalData.organizationName
     })
 
