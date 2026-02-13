@@ -143,6 +143,16 @@ export function parseRenewalFormResponse(formResponse: FormResponse): RenewalFor
   const qualityAssuranceCovers = findFieldArray('quality-assurance-cover')
   const teachingMaterialsUsed = findFieldArray('acceptable-teaching-materials')
 
+  // DEBUG: Log teaching materials for FAIB books detection
+  console.log('[parse-renewal-form] teachingMaterialsUsed field:', {
+    found: teachingMaterialsUsed.length > 0,
+    count: teachingMaterialsUsed.length,
+    values: teachingMaterialsUsed
+  })
+  teachingMaterialsUsed.forEach((item, idx) => {
+    console.log(`  [${idx}]: "${item}"`)
+  })
+
   return {
     formResponseUri: formResponse.uri,
     organizationUri,

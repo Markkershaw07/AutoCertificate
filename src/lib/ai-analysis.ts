@@ -105,6 +105,13 @@ Provide your analysis in this exact JSON format:
 
 When in doubt, do NOT add items to missingItems. Focus on the positive (what's there) rather than negative (what's not).`
 
+  // DEBUG: Log the data being sent to AI for FAIB books check
+  console.log('[ai-analysis] Checking FAIB books in form data:', {
+    hasTeachingMaterialsUsed: !!formData.formAnswers.teachingMaterialsUsed,
+    teachingMaterialsUsedCount: formData.formAnswers.teachingMaterialsUsed?.length || 0,
+    teachingMaterialsUsedValues: formData.formAnswers.teachingMaterialsUsed
+  })
+
   try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5-20250929',
