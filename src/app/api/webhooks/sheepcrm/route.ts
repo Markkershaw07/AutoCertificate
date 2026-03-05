@@ -60,30 +60,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Received SheepCRM webhook:', {
-      event: payload.event,
-      timestamp: payload.timestamp,
-      data_keys: Object.keys(payload.data || {})
-    })
+    // Log the full payload so we can diagnose any field name issues in Vercel logs
+    console.log('=== SHEEPCRM PAYMENT WEBHOOK RECEIVED ===')
+    console.log('EVENT:', payload.event)
+    console.log('TIMESTAMP:', payload.timestamp)
+    console.log('FULL DATA:', JSON.stringify(payload.data, null, 2))
+    console.log('==========================================')
 
-    // Extract member URI from payload
-    // SheepCRM payment webhooks should include the member record
-    // Try different possible field names
+    // Extract member URI - try every possible field name SheepCRM might use
     let memberUri = payload.data.member_uri ||
-                    payload.data.uri ||
+                    payload.data.member?.ref ||
                     payload.data.member?.uri ||
-                    payload.data.member?.ref
+                    payload.data.membership_uri ||
+                    payload.data.membership?.ref ||
+                    payload.data.membership?.uri ||
+                    payload.data.uri ||
+                    payload.data.ref
 
-    // If we got a person/organisation URI instead, log a warning
+    console.log('Extracted memberUri:', memberUri)
+
     if (memberUri && !memberUri.includes('/member/')) {
-      console.warn('Received non-member URI:', memberUri)
-      console.warn('Webhooks should provide member URIs. Attempting to continue anyway...')
+      console.warn('Received non-member URI:', memberUri, '- will use person/org lookup instead')
     }
 
     if (!memberUri) {
-      console.error('No member URI found in webhook payload. Payload:', JSON.stringify(payload.data, null, 2))
+      console.error('=== MEMBER URI NOT FOUND - DIAGNOSIS INFO ===')
+      console.error('Full payload:', JSON.stringify(payload, null, 2))
+      console.error('Data keys received:', Object.keys(payload.data || {}))
+      console.error('Check Vercel logs and update this handler with the correct field name.')
+      console.error('=============================================')
       return NextResponse.json(
-        { error: 'No member URI found in webhook payload. Please check webhook configuration.' },
+        {
+          error: 'No member URI found in webhook payload.',
+          hint: 'Check Vercel logs for the full payload to identify the correct field name.',
+          data_keys_received: Object.keys(payload.data || {})
+        },
         { status: 400 }
       )
     }
