@@ -9,6 +9,10 @@ import {
   AdminContactInfo,
   SheepCRMErrorResponse
 } from '@/types/sheepcrm'
+import {
+  isSupportedMembershipType,
+  resolveCertificateTemplate
+} from '@/lib/certificate-templates'
 
 export class SheepCRMClient {
   private config: SheepCRMConfig
@@ -155,7 +159,7 @@ export class SheepCRMClient {
 
   /**
    * Get active membership for certificate generation
-   * Filters ONLY for "First Aid Training Provider" membership type
+   * Filters only for supported certificate membership types
    * Accepts both "active" and "future" status memberships
    */
   async getActiveMembership(personUri: SheepCRMUri): Promise<MembershipRecord> {
@@ -165,22 +169,21 @@ export class SheepCRMClient {
       throw new Error('No memberships found for contact')
     }
 
-    // Find "First Aid Training Provider" membership (active or future)
-    const trainingProviderMembership = response.memberships.find(m => {
-      const isTrainingProvider = m.display_value &&
-        m.display_value.includes('First Aid Training Provider')
+    const certificateMembership = response.memberships.find(m => {
+      const membershipDisplay = m.display_value || ''
+      const isSupportedType = isSupportedMembershipType(membershipDisplay)
       const isValidStatus = m.membership_record_status === 'active' ||
                            m.membership_record_status === 'Active' ||
                            m.membership_record_status === 'future'
 
-      return isTrainingProvider && isValidStatus
+      return isSupportedType && isValidStatus
     })
 
-    if (!trainingProviderMembership) {
-      throw new Error('No "First Aid Training Provider" membership found for contact. Only Training Providers are eligible for certificates.')
+    if (!certificateMembership) {
+      throw new Error('No supported certificate membership found for contact. Supported types are First Aid Training Provider, Mental Health Training Provider, and In Safe Hands Award.')
     }
 
-    return trainingProviderMembership
+    return certificateMembership
   }
 
   /**
@@ -204,13 +207,14 @@ export class SheepCRMClient {
       // Fetch the member record
       const memberRecord = await this.getFullRecord(memberUri)
 
-      // Validate it's a "First Aid Training Provider" membership
-      const isTrainingProvider = memberRecord.data?.membership_type?.display_value &&
-        memberRecord.data.membership_type.display_value.includes('First Aid Training Provider')
+      const membershipTypeDisplay = memberRecord.data?.membership_type?.display_value || memberRecord.display_value
+      const isSupportedType = isSupportedMembershipType(membershipTypeDisplay)
 
-      if (!isTrainingProvider) {
-        throw new Error('Only "First Aid Training Provider" memberships are eligible for certificates.')
+      if (!isSupportedType) {
+        throw new Error('Only supported certificate memberships are eligible for certificates.')
       }
+
+      const templateConfig = resolveCertificateTemplate({ membershipTypeDisplay })
 
       // Get the person/organisation URI from the member record
       const contactUri = memberRecord.data.member.ref
@@ -243,6 +247,8 @@ export class SheepCRMClient {
           licence_number: memberRecord.data.membership_number,
           membership_start_date: dates.start,
           membership_end_date: dates.end,
+          membership_type_key: templateConfig.key,
+          membership_type_display: templateConfig.displayName,
           admin_contact: adminContact
         }
       } else {
@@ -260,7 +266,9 @@ export class SheepCRMClient {
           company_address: companyAddress,
           licence_number: memberRecord.data.membership_number,
           membership_start_date: dates.start,
-          membership_end_date: dates.end
+          membership_end_date: dates.end,
+          membership_type_key: templateConfig.key,
+          membership_type_display: templateConfig.displayName
         }
       }
     } catch (error: any) {
@@ -293,7 +301,9 @@ export class SheepCRMClient {
         company_address: companyAddress,
         licence_number: membership.membership_number,
         membership_start_date: dates.start,
-        membership_end_date: dates.end
+        membership_end_date: dates.end,
+        membership_type_key: resolveCertificateTemplate({ membershipTypeDisplay: membership.display_value }).key,
+        membership_type_display: resolveCertificateTemplate({ membershipTypeDisplay: membership.display_value }).displayName
       }
     } catch (error: any) {
       console.error('Error fetching certificate data from SheepCRM:', error)

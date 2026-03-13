@@ -4,6 +4,7 @@ import * as path from 'path'
 import PizZip from 'pizzip'
 import Docxtemplater from 'docxtemplater'
 import CloudConvert from 'cloudconvert'
+import { resolveCertificateTemplate } from '@/lib/certificate-templates'
 
 export const runtime = 'nodejs'
 
@@ -55,7 +56,15 @@ export async function POST(request: NextRequest) {
   try {
     // Parse and validate request body
     const body = await request.json()
-    const { company_name, company_address, licence_number, membership_start_date, membership_end_date } = body
+    const {
+      company_name,
+      company_address,
+      licence_number,
+      membership_start_date,
+      membership_end_date,
+      membership_type_key,
+      membership_type_display
+    } = body
 
     if (!company_name || !company_address || !licence_number || !membership_start_date || !membership_end_date) {
       return NextResponse.json(
@@ -72,12 +81,17 @@ export async function POST(request: NextRequest) {
     // Format address with line breaks at commas
     const formattedAddress = formatAddress(company_address)
 
+    const templateConfig = resolveCertificateTemplate({
+      membershipTypeKey: membership_type_key,
+      membershipTypeDisplay: membership_type_display
+    })
+
     // Load PPTX template
-    const templatePath = path.join(process.cwd(), 'templates', 'licence_template.pptx')
+    const templatePath = path.join(process.cwd(), 'templates', templateConfig.templateFile)
 
     if (!fs.existsSync(templatePath)) {
       return NextResponse.json(
-        { error: 'Template file not found at /templates/licence_template.pptx' },
+        { error: `Template file not found at /templates/${templateConfig.templateFile}` },
         { status: 404 }
       )
     }

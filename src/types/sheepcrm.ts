@@ -85,6 +85,8 @@ export interface CertificateData {
   licence_number: string
   membership_start_date: string
   membership_end_date: string
+  membership_type_key?: string
+  membership_type_display?: string
   admin_contact?: AdminContactInfo
 }
 

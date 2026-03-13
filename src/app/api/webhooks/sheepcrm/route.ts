@@ -1,40 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createSheepCRMClient } from '@/lib/sheepcrm'
+import {
+  generateCertificateFromSheepUri,
+  getRequestBaseUrl
+} from '@/lib/sheepcrm-certificate'
+import {
+  claimWebhookProcessing,
+  classifyWebhookPayload,
+  completeWebhookProcessing,
+  releaseWebhookProcessing,
+  verifyWebhookSignature
+} from '@/lib/sheepcrm-webhook'
 import { SheepCRMWebhookPayload } from '@/types/sheepcrm'
-import crypto from 'crypto'
 
 export const runtime = 'nodejs'
-
-/**
- * Verify webhook signature for security
- * SheepCRM should send a signature header to verify the webhook is authentic
- */
-function verifyWebhookSignature(payload: string, signature: string | null): boolean {
-  if (!process.env.SHEEPCRM_WEBHOOK_SECRET) {
-    console.warn('SHEEPCRM_WEBHOOK_SECRET not set - skipping signature verification')
-    return true // Allow in development
-  }
-
-  if (!signature) {
-    return false
-  }
-
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.SHEEPCRM_WEBHOOK_SECRET)
-    .update(payload)
-    .digest('hex')
-
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expectedSignature)
-  )
-}
 
 /**
  * SheepCRM Webhook Handler
  * Receives payment events and auto-generates certificates
  */
 export async function POST(request: NextRequest) {
+  let activeDedupeKey: string | null = null
+
   try {
     // Get raw body for signature verification
     const rawBody = await request.text()
@@ -60,55 +46,87 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log the full payload so we can diagnose any field name issues in Vercel logs
     console.log('=== SHEEPCRM PAYMENT WEBHOOK RECEIVED ===')
     console.log('EVENT:', payload.event)
     console.log('TIMESTAMP:', payload.timestamp)
     console.log('FULL DATA:', JSON.stringify(payload.data, null, 2))
     console.log('==========================================')
 
-    // Extract member URI - try every possible field name SheepCRM might use
-    let memberUri = payload.data.member_uri ||
-                    payload.data.member?.ref ||
-                    payload.data.member?.uri ||
-                    payload.data.membership_uri ||
-                    payload.data.membership?.ref ||
-                    payload.data.membership?.uri ||
-                    payload.data.uri ||
-                    payload.data.ref
+    const classification = classifyWebhookPayload(payload)
 
-    console.log('Extracted memberUri:', memberUri)
+    console.log('Webhook classification:', classification)
 
-    if (memberUri && !memberUri.includes('/member/')) {
-      console.warn('Received non-member URI:', memberUri, '- will use person/org lookup instead')
-    }
-
-    if (!memberUri) {
-      console.error('=== MEMBER URI NOT FOUND - DIAGNOSIS INFO ===')
-      console.error('Full payload:', JSON.stringify(payload, null, 2))
-      console.error('Data keys received:', Object.keys(payload.data || {}))
-      console.error('Check Vercel logs and update this handler with the correct field name.')
-      console.error('=============================================')
+    if (!classification.shouldProcess) {
       return NextResponse.json(
         {
-          error: 'No member URI found in webhook payload.',
-          hint: 'Check Vercel logs for the full payload to identify the correct field name.',
+          success: true,
+          processed: false,
+          reason: classification.reason,
+          event: classification.eventName
+        },
+        { status: 200 }
+      )
+    }
+
+    const uriToProcess = classification.memberUri || classification.fallbackUri
+
+    if (!uriToProcess) {
+      console.error('No member/contact URI found in paid webhook payload.')
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No member or contact URI found in paid webhook payload',
+          event: classification.eventName,
           data_keys_received: Object.keys(payload.data || {})
         },
         { status: 400 }
       )
     }
 
-    console.log('Processing certificate for member URI:', memberUri)
+    if (process.env.SHEEPCRM_WEBHOOK_CAPTURE_ONLY === 'true') {
+      console.log('Capture-only mode enabled - skipping certificate generation.')
+      return NextResponse.json({
+        success: true,
+        processed: false,
+        capture_only: true,
+        reason: 'Payload captured successfully; generation skipped by configuration',
+        event: classification.eventName,
+        uri: uriToProcess
+      })
+    }
 
-    // Create SheepCRM client and fetch certificate data
-    const sheepCRM = createSheepCRMClient()
+    if (!classification.dedupeKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Unable to derive webhook dedupe key from payload',
+          event: classification.eventName
+        },
+        { status: 400 }
+      )
+    }
 
-    // Use the appropriate method based on URI type
-    const isMemberUri = memberUri.includes('/member/')
-    const certificateData = isMemberUri
-      ? await sheepCRM.getCertificateDataFromMember(memberUri)
-      : await sheepCRM.getCertificateData(memberUri)
+    activeDedupeKey = classification.dedupeKey
+    const claim = await claimWebhookProcessing(classification.dedupeKey, {
+      event: classification.eventName,
+      payment_id: classification.paymentId,
+      uri: uriToProcess
+    })
+
+    if (!claim.claimed) {
+      return NextResponse.json({
+        success: true,
+        processed: false,
+        duplicate: true,
+        reason: 'Webhook already processed or currently processing',
+        event: classification.eventName
+      })
+    }
+
+    console.log('Processing certificate for URI:', uriToProcess)
+
+    const baseUrl = await getRequestBaseUrl()
+    const { certificateData, generated } = await generateCertificateFromSheepUri(uriToProcess, baseUrl)
 
     console.log('Fetched certificate data:', {
       company_name: certificateData.company_name,
@@ -116,29 +134,17 @@ export async function POST(request: NextRequest) {
       dates: `${certificateData.membership_start_date} to ${certificateData.membership_end_date}`
     })
 
-    // Call existing certificate generation endpoint
-    // Get the base URL from the request headers
-    const protocol = request.headers.get('x-forwarded-proto') || 'http'
-    const host = request.headers.get('host') || 'localhost:3000'
-    const baseUrl = `${protocol}://${host}`
-
-    const generateResponse = await fetch(`${baseUrl}/api/generate-licence-and-save`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(certificateData)
+    await completeWebhookProcessing(classification.dedupeKey, {
+      event: classification.eventName,
+      payment_id: classification.paymentId,
+      uri: uriToProcess,
+      company_name: certificateData.company_name,
+      licence_number: certificateData.licence_number,
+      storage_path: generated.path
     })
 
-    if (!generateResponse.ok) {
-      const errorData = await generateResponse.json()
-      throw new Error(`Certificate generation failed: ${errorData.error}`)
-    }
-
-    const result = await generateResponse.json()
-
     console.log('Certificate generated successfully:', {
-      path: result.path,
+      path: generated.path,
       company_name: certificateData.company_name
     })
 
@@ -149,12 +155,16 @@ export async function POST(request: NextRequest) {
       data: {
         company_name: certificateData.company_name,
         licence_number: certificateData.licence_number,
-        storage_path: result.path
+        storage_path: generated.path
       }
     })
 
   } catch (error: any) {
     console.error('Webhook processing error:', error)
+
+    if (activeDedupeKey) {
+      await releaseWebhookProcessing(activeDedupeKey)
+    }
 
     // Return error response
     return NextResponse.json(

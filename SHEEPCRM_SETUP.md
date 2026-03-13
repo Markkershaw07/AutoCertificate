@@ -1,143 +1,179 @@
 # SheepCRM Integration Setup Guide
 
-This guide will help you set up the automatic certificate generation integration with SheepCRM.
+This guide covers automatic certificate generation from SheepCRM paid events.
 
 ## Overview
 
-The integration allows your app to automatically generate training provider certificates when payments are received in SheepCRM. When a payment webhook is received, the app:
+The app now supports:
 
-1. Fetches member details from SheepCRM API
-2. Extracts company name, address, membership number, and dates
-3. Generates a certificate PDF
-4. Stores it in Supabase for later access
+1. Automatic Sheep webhook processing for paid events.
+2. Duplicate-delivery protection so the same webhook is not processed twice.
+3. A capture-only mode for safely logging the first live payload.
+4. Template selection for these membership types:
+   - First Aid Training Provider
+   - Mental Health Training Provider
+   - In Safe Hands Award
 
-## Step 1: Get Your SheepCRM API Credentials
+The current certificate renderer still relies on the existing PowerPoint-to-PDF conversion path. Template selection is now ready for additional membership templates as soon as those files are added to the `templates` folder.
+
+## Step 1: Get Your SheepCRM Credentials
 
 ### API Key
-1. Log into your SheepCRM account
-2. Go to Settings → API or Integrations
-3. Generate a new API key
-4. Copy the API key (you'll only see it once!)
+1. Log into SheepCRM.
+2. Open Settings and then API or Integrations.
+3. Generate a new API key.
+4. Copy the key and store it securely.
 
 ### Bucket Name
-Your bucket name is your organization/client identifier in SheepCRM. You can find it:
-- In the URL when logged into SheepCRM: `https://app.sheepcrm.com/YOUR-BUCKET/...`
-- In the API documentation examples
-- By asking SheepCRM support
+Your bucket is the organisation identifier used in SheepCRM URLs, for example:
+
+- `https://app.sheepcrm.com/YOUR-BUCKET/...`
 
 ## Step 2: Configure Environment Variables
 
-1. Copy your `.env.local.example` to `.env.local`:
-   ```bash
-   cp .env.local.example .env.local
-   ```
+Copy `.env.local.example` to `.env.local` and fill in:
 
-2. Add your SheepCRM credentials to `.env.local`:
-   ```
-   SHEEPCRM_API_KEY=your_api_key_here
-   SHEEPCRM_BUCKET=your_bucket_name
-   SHEEPCRM_BASE_URL=https://sls-api.sheepcrm.com
-   SHEEPCRM_WEBHOOK_SECRET=create_a_random_secret_string
-   ```
+```env
+APP_BASE_URL=https://your-app.vercel.app
 
-### Webhook Secret
-Generate a strong random secret for webhook signature verification:
-```bash
-# On Linux/Mac:
-openssl rand -hex 32
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_BUCKET=licences
 
-# Or use any random string generator
+SHEEPCRM_API_KEY=
+SHEEPCRM_BUCKET=
+SHEEPCRM_BASE_URL=https://sls-api.sheepcrm.com
+SHEEPCRM_WEBHOOK_SECRET=
+SHEEPCRM_PAYMENT_EVENT_NAMES=payment.paid,payment_paid,payment.succeeded
+SHEEPCRM_WEBHOOK_CAPTURE_ONLY=true
+SHEEPCRM_ALLOW_UNSIGNED_WEBHOOKS=true
 ```
 
-## Step 3: Deploy Your Application
+### Important Variables
 
-1. Deploy your Next.js app to your hosting provider (Vercel, etc.)
-2. Note your production URL (e.g., `https://your-app.vercel.app`)
+- `APP_BASE_URL`
+  - Required so the webhook route can call the internal certificate-generation route consistently in production.
+- `SHEEPCRM_PAYMENT_EVENT_NAMES`
+  - Comma-separated exact event names that should count as successful paid events.
+  - Start broad, then tighten this after capturing the first real payload.
+- `SHEEPCRM_WEBHOOK_CAPTURE_ONLY`
+  - Use `true` for the first live webhook test.
+  - Change to `false` once the payload shape and event names are confirmed.
+- `SHEEPCRM_ALLOW_UNSIGNED_WEBHOOKS`
+  - Set this to `true` for Sheep outgoing actions unless Sheep is explicitly configured to send a signature header.
+  - This lets the app accept Sheep's unsigned webhook POSTs during setup and production use.
 
-## Step 4: Configure SheepCRM Webhook
+## Step 3: Deploy the App
 
-1. Log into SheepCRM
-2. Go to Settings → Webhooks or Integrations
-3. Create a new webhook with:
-   - **URL**: `https://your-app.vercel.app/api/webhooks/sheepcrm`
-   - **Events**: Select "Payment Received" or relevant payment events
-   - **Secret**: Use the same `SHEEPCRM_WEBHOOK_SECRET` from your `.env.local`
+Deploy the Next.js app and confirm the production URL that SheepCRM should call.
 
-4. Save and test the webhook
+## Step 4: Configure the SheepCRM Webhook
 
-## Step 5: Test the Integration
+Create a webhook in SheepCRM with:
 
-### Option 1: Manual Testing (Recommended First)
-1. Navigate to the "SheepCRM Sync" page in your app
-2. Find a member URI from SheepCRM:
-   - Go to a member's profile in SheepCRM
-   - The URI is in the format: `/your-bucket/person/abc123/`
-3. Paste the URI and click "Generate Certificate from SheepCRM"
-4. Verify the certificate is generated correctly
+- URL: `https://your-app.vercel.app/api/webhooks/sheepcrm`
+- Secret: the same value as `SHEEPCRM_WEBHOOK_SECRET`
+- Events: the paid/payment-success events available in SheepCRM
 
-### Option 2: Webhook Testing
-1. In SheepCRM, trigger a test webhook or make a test payment
-2. Check your application logs for webhook receipt
-3. Verify the certificate was auto-generated
-4. Check Supabase storage for the PDF
+## Step 5: Capture the First Real Payload Safely
 
-## Data Mapping
+Before live automation, keep:
 
-The integration maps SheepCRM data to certificate fields as follows:
+```env
+SHEEPCRM_WEBHOOK_CAPTURE_ONLY=true
+```
 
-| Certificate Field | SheepCRM Source | API Endpoint |
-|-------------------|----------------|--------------|
-| Company Name | Contact/Organisation display name | `/api/v1/{bucket}/{resource}/{uid}/display` |
-| Company Address | Organisation or Person record | `/api/v1{contact_uri}` (full record) |
-| Licence Number | Membership number | From member record |
-| Start Date | Membership start_date | From member record |
-| End Date | Membership end_date | From member record |
+Then:
 
-**Important:** The integration uses **Member URIs** (format: `/bucket/member/uid/`) which contain all the necessary information including references to the training provider organisation and their membership details.
+1. Trigger a real or test payment in SheepCRM.
+2. Open your deployment logs.
+3. Find the `SHEEPCRM PAYMENT WEBHOOK RECEIVED` entry.
+4. Record:
+   - the exact `event` value,
+   - any payment status fields,
+   - whether the payload contains `member_uri`, `person_uri`, `contact_uri`, or another identifier.
+5. Update `SHEEPCRM_PAYMENT_EVENT_NAMES` to the exact paid event names only.
+
+If Sheep uses different field names than the current handler expects, update the webhook extraction logic before switching live generation on.
+
+## Step 6: Enable Automatic Generation
+
+Set:
+
+```env
+SHEEPCRM_WEBHOOK_CAPTURE_ONLY=false
+```
+
+Then trigger another paid event. The app should:
+
+1. verify the signature,
+2. classify the event,
+3. resolve the correct member or fallback contact URI,
+4. fetch certificate data,
+5. render the certificate,
+6. upload it to Supabase,
+7. write a dedupe marker so retries do not generate duplicates.
+
+## Step 7: Verify Output
+
+After a successful webhook:
+
+1. Confirm logs show `Certificate generated successfully`.
+2. Check Supabase Storage for a PDF under:
+
+```text
+licences/<year>/<membership-type-key>/...
+```
+
+3. Check Supabase Storage for a dedupe marker under:
+
+```text
+webhook-processing/sheepcrm/...
+```
+
+4. Retry the same webhook and confirm the response is treated as already processed.
+
+## Manual Testing
+
+The manual sync page still works for known Sheep member URIs.
+
+Use a member URI in the form:
+
+```text
+/bucket/member/uid/
+```
+
+## Membership Template Files
+
+The app now resolves templates by membership type using these filenames:
+
+- `templates/licence_template.pptx`
+- `templates/mental_health_training_provider_template.pptx`
+- `templates/in_safe_hands_award_template.pptx`
+
+If the new templates are not present yet, First Aid Training Provider will continue working with the existing file, while the new membership types will return a missing-template error until their template files are added.
 
 ## Troubleshooting
 
-### "SHEEPCRM_API_KEY environment variable is not set"
-- Make sure you've created `.env.local` and added your API key
-- Restart your development server after adding environment variables
+### Invalid webhook signature
+- Make sure the SheepCRM webhook secret exactly matches `SHEEPCRM_WEBHOOK_SECRET`.
 
-### "Invalid webhook signature"
-- Ensure the webhook secret in SheepCRM matches your `SHEEPCRM_WEBHOOK_SECRET`
-- Check that the secret is properly configured on both sides
+### Webhook is received but ignored
+- Check the event name in logs.
+- Confirm it appears in `SHEEPCRM_PAYMENT_EVENT_NAMES`.
+- Check whether the payload status indicates a pending, failed, refunded, or cancelled state.
 
-### "No active membership found for contact"
-- Verify the member has an active membership in SheepCRM
-- Check that the membership status is "active" or "Active"
+### No certificate generated during first test
+- Confirm `SHEEPCRM_WEBHOOK_CAPTURE_ONLY` is not still set to `true`.
 
-### "No address found for contact"
-- Ensure the member has an address in their SheepCRM contact record
-- Check the communications/detail endpoint for the member
+### No member URI in the payload
+- The webhook handler can fall back to person/contact URIs.
+- If Sheep sends different field names, update the extraction logic after reviewing the captured payload.
 
-### Certificate not generating
-1. Check application logs for errors
-2. Test the manual sync first to isolate webhook issues
-3. Verify all environment variables are set
-4. Check SheepCRM webhook delivery logs
+### Duplicate retries
+- Duplicate deliveries are expected from many webhook systems.
+- The app uses a dedupe marker in Supabase Storage and will skip repeated processing for the same event key.
 
-## API Endpoints
-
-Your app now has these new endpoints:
-
-- **POST /api/webhooks/sheepcrm** - Receives webhooks from SheepCRM (automatic)
-- **GET /api/webhooks/sheepcrm** - Webhook health check
-- **POST /api/sheepcrm/sync** - Manual sync trigger (for testing)
-
-## Security Notes
-
-- The webhook secret is used to verify webhook authenticity
-- Always use HTTPS in production
-- Keep your API key secure and never commit it to version control
-- Rotate your API key periodically
-
-## Support
-
-If you encounter issues:
-1. Check the application logs
-2. Verify your SheepCRM API credentials
-3. Test the manual sync endpoint first
-4. Contact SheepCRM support for webhook-specific issues
+### Missing template for Mental Health or In Safe Hands
+- Add the corresponding `.pptx` template file to `templates/`.
+- Keep the file names aligned with the list above, or update the template mapping in the app.

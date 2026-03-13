@@ -17,6 +17,10 @@ interface LicenceFile {
     licence_number: string
     membership_start_date: string
     membership_end_date: string
+    admin_contact?: {
+      name: string
+      email: string | null
+    } | null
   }
 }
 
@@ -39,6 +43,7 @@ export default function LicencesPage() {
   const [downloadingPath, setDownloadingPath] = useState<string | null>(null)
   const [deletingPath, setDeletingPath] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [copiedEmailPath, setCopiedEmailPath] = useState<string | null>(null)
 
   const limit = 20
 
@@ -185,6 +190,25 @@ export default function LicencesPage() {
     }
   }
 
+  const handleCopyEmail = async (licence: LicenceFile) => {
+    const email = licence.metadata?.admin_contact?.email
+
+    if (!email) {
+      return
+    }
+
+    try {
+      await navigator.clipboard.writeText(email)
+      setCopiedEmailPath(licence.path)
+
+      setTimeout(() => {
+        setCopiedEmailPath((current) => current === licence.path ? null : current)
+      }, 2000)
+    } catch (err) {
+      alert('Failed to copy email to clipboard')
+    }
+  }
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-GB', {
@@ -320,7 +344,26 @@ export default function LicencesPage() {
                             {licence.metadata?.company_name || 'N/A'}
                           </div>
                           {licence.metadata && (
-                            <div className="text-xs text-gray-500 mt-1 max-w-[150px] lg:max-w-xs truncate">{licence.name}</div>
+                            <>
+                              <div className="text-xs text-gray-500 mt-1 max-w-[150px] lg:max-w-xs truncate">{licence.name}</div>
+                              {licence.metadata.admin_contact?.email && (
+                                <div className="mt-2 flex flex-col items-start gap-1">
+                                  <span className="text-xs text-gray-600 break-all">
+                                    {licence.metadata.admin_contact.email}
+                                  </span>
+                                  <button
+                                    onClick={() => handleCopyEmail(licence)}
+                                    className={`px-2 py-1 text-xs font-semibold rounded transition-colors ${
+                                      copiedEmailPath === licence.path
+                                        ? 'bg-accent-green text-white'
+                                        : 'bg-navy text-white hover:bg-navy/90'
+                                    }`}
+                                  >
+                                    {copiedEmailPath === licence.path ? 'Copied!' : 'Copy Email'}
+                                  </button>
+                                </div>
+                              )}
+                            </>
                           )}
                         </td>
                         <td className="py-3 px-3 lg:py-5 lg:px-8">
